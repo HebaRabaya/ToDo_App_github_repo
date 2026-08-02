@@ -4,10 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/task_model.dart';
+import '../widgets/bottom_nav_bar.dart';
+
 import 'add_task.dart';
+import 'complete_tasks_screen.dart';
+import 'profile_screen.dart';
+import 'tasks_screen.dart';
 
 
+// =========================================================
 // شاشة الـ Home
+// =========================================================
+
 // هون بنعرض التاسكات والـ progress والـ high priority tasks
 class HomeScreen extends StatefulWidget {
   final String name;
@@ -23,12 +31,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 
+// =========================================================
+// Home Logic
+// =========================================================
+
 // هون بنحط كل اللوجيك والتغييرات الخاصة بالـ Home
 class _HomeScreenState extends State<HomeScreen> {
 
   // ليستة بنخزن فيها كل التاسكات
   List<TaskModel> tasks = [];
 
+
+  // =========================================================
+  // بداية الشاشة
+  // =========================================================
 
   // أول ما تفتح شاشة الـ Home بنقرأ التاسكات المحفوظة
   @override
@@ -137,8 +153,95 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
+  // =========================================================
+  // التنقل بين صفحات الـ Bottom Navigation
+  // =========================================================
+
+  // هاي الدالة بتشتغل لما المستخدم يضغط
+  // على أي أيقونة من الأيقونات اللي تحت
+  void onBottomNavTap(int index) {
+
+    // =======================================================
+    // Home
+    // =======================================================
+
+    // إذا ضغطنا على Home
+    // إحنا أصلًا بصفحة Home فما بدنا نعمل أي شيء
+    if (index == 0) {
+      return;
+    }
+
+
+    // =======================================================
+    // To Do
+    // =======================================================
+
+    // إذا ضغطنا على To Do
+    if (index == 1) {
+
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(
+          builder: (_) => const TasksScreen(),
+        ),
+      );
+
+      return;
+    }
+
+
+    // =======================================================
+    // Completed
+    // =======================================================
+
+    // إذا ضغطنا على Completed
+    if (index == 2) {
+
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(
+          builder: (_) =>
+          const CompleteTasksScreen(),
+        ),
+      );
+
+      return;
+    }
+
+
+    // =======================================================
+    // Profile
+    // =======================================================
+
+    // إذا ضغطنا على Profile
+    if (index == 3) {
+
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(
+          builder: (_) =>
+          const ProfileScreen(),
+        ),
+      );
+
+      return;
+    }
+  }
+
+
+  // =========================================================
+  // بناء واجهة الصفحة
+  // =========================================================
+
   @override
   Widget build(BuildContext context) {
+
+    // =======================================================
+    // حساب الـ Progress
+    // =======================================================
 
     // بنحسب عدد التاسكات اللي خلصت
     final completedTasks =
@@ -155,6 +258,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ? 0
         : completedTasks / totalTasks;
 
+
+    // =======================================================
+    // High Priority Tasks
+    // =======================================================
 
     // بنجيب بس التاسكات اللي عليها High Priority
     final highPriorityTasks = tasks
@@ -174,7 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
       FloatingActionButton.extended(
 
         // لون زر الإضافة
-        backgroundColor: const Color(0xFF52C070),
+        backgroundColor:
+        const Color(0xFF52C070),
 
 
         // شو بصير لما نضغط على الزر
@@ -183,6 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // بنروح على شاشة إضافة Task
           await Navigator.push(
             context,
+
             MaterialPageRoute(
               builder: (_) => const AddTask(),
             ),
@@ -205,6 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // النص الموجود داخل الزر
         label: const Text(
           "Add New Task",
+
           style: TextStyle(
             color: Colors.white,
           ),
@@ -235,9 +345,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
             children: [
 
-              // =====================================================
+              // =================================================
               // Header
-              // =====================================================
+              // =================================================
 
               Row(
                 children: [
@@ -263,6 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
 
                     child: ClipRRect(
+
                       // بنخلي الصورة نفسها حوافها دائرية
                       borderRadius:
                       BorderRadius.circular(6),
@@ -273,8 +384,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       // =================================================
-                      // طريقة اضافة نفس الصورة بس امتداد svg عشان الصورة تكون اوضح
+                      // طريقة إضافة نفس الصورة بس امتداد SVG
+                      // عشان الصورة تكون أوضح
                       //
+                      // هاي حاليًا محطوطة كـ comment
+                      // يعني مش شغالة
                       // =================================================
                       //
                       // child: SvgPicture.asset(
@@ -372,6 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+
               const Text(
                 "almost done! 👋🏻",
 
@@ -436,10 +551,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
                         // عدد التاسكات اللي خلصناها
-                        const Text(
-                          "0 Out of 0 Done",
+                        Text(
+                          "$completedTasks Out of $totalTasks Done",
 
-                          style: TextStyle(
+                          style: const TextStyle(
                             color:
                             Color(0xFFBDBDBD),
                             fontSize: 10,
@@ -859,72 +974,18 @@ class _HomeScreenState extends State<HomeScreen> {
       // Bottom Navigation
       // =====================================================
 
-      bottomNavigationBar:
-      BottomNavigationBar(
+      // بدل ما نكتب BottomNavigationBar كامل هون
+      // استخدمنا الـ Widget المشترك
+      // عشان نفس الـ Bottom Bar يظهر بكل الصفحات
+      bottomNavigationBar: BottomNavBar(
 
-        backgroundColor:
-        const Color(0xFF181818),
-
-        // بنخلي كل الـ items ظاهرين
-        type: BottomNavigationBarType.fixed,
-
-
-        // لون الـ item المختار
-        selectedItemColor:
-        const Color(0xFF00D084),
-
-
-        // لون الـ items اللي مش مختارة
-        unselectedItemColor:
-        Colors.white70,
-
-
-        // أول صفحة هي Home
+        // رقم 0 يعني إن الصفحة الحالية هي Home
         currentIndex: 0,
 
 
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-
-        selectedFontSize: 9,
-        unselectedFontSize: 9,
-
-
-        // عناصر الـ Bottom Navigation
-        items: const [
-
-          // Home
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon:
-            Icon(Icons.home),
-            label: "Home",
-          ),
-
-
-          // To Do
-          BottomNavigationBarItem(
-            icon:
-            Icon(Icons.description_outlined),
-            label: "To Do",
-          ),
-
-
-          // Completed
-          BottomNavigationBarItem(
-            icon:
-            Icon(Icons.fact_check_outlined),
-            label: "Completed",
-          ),
-
-
-          // Profile
-          BottomNavigationBarItem(
-            icon:
-            Icon(Icons.person_outline),
-            label: "Profile",
-          ),
-        ],
+        // هاي الدالة بتحدد وين نروح
+        // لما المستخدم يضغط على أي أيقونة
+        onItemSelected: onBottomNavTap,
       ),
     );
   }
