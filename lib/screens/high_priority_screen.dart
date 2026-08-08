@@ -7,26 +7,30 @@ import '../models/task_model.dart';
 import '../widgets/task_list_widget.dart';
 
 // =========================================================
-// Completed Tasks Screen
+// High Priority Screen
 // =========================================================
 
-class CompleteTasksScreen extends StatefulWidget {
-  const CompleteTasksScreen({super.key});
+class HighPriorityScreen
+    extends StatefulWidget {
+  const HighPriorityScreen({super.key});
 
   @override
-  State<CompleteTasksScreen> createState() =>
-      _CompleteTasksScreenState();
+  State<HighPriorityScreen> createState() =>
+      _HighPriorityScreenState();
 }
 
-class _CompleteTasksScreenState
-    extends State<CompleteTasksScreen> {
+// =========================================================
+// Logic
+// =========================================================
 
-  // التاسكات المكتملة
+class _HighPriorityScreenState
+    extends State<HighPriorityScreen> {
+
   List<TaskModel> tasks = [];
 
-  // =========================================================
-  // بداية الشاشة
-  // =========================================================
+  // =======================================================
+  // Init
+  // =======================================================
 
   @override
   void initState() {
@@ -35,9 +39,9 @@ class _CompleteTasksScreenState
     loadTasks();
   }
 
-  // =========================================================
-  // تحميل التاسكات المكتملة
-  // =========================================================
+  // =======================================================
+  // Load High Priority
+  // =======================================================
 
   Future<void> loadTasks() async {
     final pref =
@@ -46,23 +50,23 @@ class _CompleteTasksScreenState
     final savedTasks =
         pref.getStringList("tasks") ?? [];
 
-    final List<TaskModel> loadedTasks = [];
+    final List<TaskModel> loadedTasks =
+    [];
 
     for (final item in savedTasks) {
       try {
-        final decoded = jsonDecode(item);
+        final decoded =
+        jsonDecode(item);
 
         final task =
         TaskModel.fromJson(
           Map<String, dynamic>.from(decoded),
         );
 
-        if (task.isCompleted) {
+        if (task.isHighPriority) {
           loadedTasks.add(task);
         }
-      } catch (e) {
-        // تجاهل البيانات الخاطئة
-      }
+      } catch (_) {}
     }
 
     if (!mounted) return;
@@ -72,9 +76,9 @@ class _CompleteTasksScreenState
     });
   }
 
-  // =========================================================
-  // تحديث التاسك
-  // =========================================================
+  // =======================================================
+  // Update Task
+  // =======================================================
 
   Future<void> updateTask(
       TaskModel task,
@@ -86,32 +90,38 @@ class _CompleteTasksScreenState
     final savedTasks =
         pref.getStringList("tasks") ?? [];
 
-    final List<String> updatedTasks = [];
+    final List<String> updatedTasks =
+    [];
 
     for (final item in savedTasks) {
-      final decoded = jsonDecode(item);
+      try {
+        final decoded =
+        jsonDecode(item);
 
-      final currentTask =
-      TaskModel.fromJson(
-        Map<String, dynamic>.from(decoded),
-      );
-
-      if (currentTask.taskName ==
-          task.taskName &&
-          currentTask.taskDescription ==
-              task.taskDescription) {
-
-        final updatedTask =
-        currentTask.copyWith(
-          isCompleted: value,
+        final currentTask =
+        TaskModel.fromJson(
+          Map<String, dynamic>.from(decoded),
         );
 
-        updatedTasks.add(
-          jsonEncode(
-            updatedTask.toJson(),
-          ),
-        );
-      } else {
+        if (currentTask.taskName ==
+            task.taskName &&
+            currentTask.taskDescription ==
+                task.taskDescription) {
+
+          final updatedTask =
+          currentTask.copyWith(
+            isCompleted: value,
+          );
+
+          updatedTasks.add(
+            jsonEncode(
+              updatedTask.toJson(),
+            ),
+          );
+        } else {
+          updatedTasks.add(item);
+        }
+      } catch (_) {
         updatedTasks.add(item);
       }
     }
@@ -124,9 +134,9 @@ class _CompleteTasksScreenState
     await loadTasks();
   }
 
-  // =========================================================
+  // =======================================================
   // Build
-  // =========================================================
+  // =======================================================
 
   @override
   Widget build(BuildContext context) {
@@ -137,8 +147,18 @@ class _CompleteTasksScreenState
       theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+
+          icon: const Icon(
+            Icons.arrow_back,
+          ),
+        ),
+
         title: const Text(
-          "Completed Tasks",
+          "High Priority Tasks",
           style: TextStyle(
             fontSize: 17,
           ),
@@ -149,7 +169,7 @@ class _CompleteTasksScreenState
         child: tasks.isEmpty
             ? Center(
           child: Text(
-            "No completed tasks",
+            "No high priority tasks",
             style:
             theme.textTheme.bodySmall,
           ),

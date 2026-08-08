@@ -1,59 +1,90 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'screens/home_screen.dart';
+import 'core/services/preferences_manager.dart';
+import 'core/theme/dark_theme.dart';
+import 'core/theme/light_theme.dart';
+
+import 'screens/main_screen.dart';
 import 'screens/welcome_screen.dart';
 
-void main() {
+// =========================================================
+// Main
+// =========================================================
+
+// أول ملف ببدأ منه التطبيق
+Future<void> main() async {
+  // بنتأكد إن Flutter جاهز
   WidgetsFlutterBinding.ensureInitialized();
 
+  // تجهيز PreferencesManager
+  await PreferencesManager.instance.init();
+
+  // تشغيل التطبيق
   runApp(const MyApp());
 }
+
+// =========================================================
+// MyApp
+// =========================================================
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // قراءة اسم المستخدم من SharedPreferences
-  Future<String?> getUserName() async {
-    final pref = await SharedPreferences.getInstance();
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: PreferencesManager.instance,
 
-    return pref.getString("username");
+      builder: (context, child) {
+        // بنحدد الثيم حسب القيمة المحفوظة
+        final bool isDark =
+            PreferencesManager.instance.isDarkMode;
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+
+          // =================================================
+          // Themes
+          // =================================================
+
+          theme: LightTheme.theme,
+
+          darkTheme: DarkTheme.theme,
+
+          themeMode: isDark
+              ? ThemeMode.dark
+              : ThemeMode.light,
+
+          // =================================================
+          // أول شاشة
+          // =================================================
+
+          home: const StartScreen(),
+        );
+      },
+    );
   }
+}
+
+// =========================================================
+// Start Screen
+// =========================================================
+
+// هاي الشاشة بتقرر:
+// إذا المستخدم موجود -> MainScreen
+// إذا مش موجود -> WelcomeScreen
+class StartScreen extends StatelessWidget {
+  const StartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    final userName =
+        PreferencesManager.instance.username;
 
-      home: FutureBuilder<String?>(
-        future: getUserName(),
+    if (userName.isNotEmpty) {
+      return const MainScreen();
+    }
 
-        builder: (context, snapshot) {
-          // لسا بنقرأ البيانات
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              backgroundColor: Color(0xFF181818),
-
-              body: Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF52C070),
-                ),
-              ),
-            );
-          }
-
-          // إذا الاسم موجود
-          if (snapshot.data != null &&
-              snapshot.data!.isNotEmpty) {
-            return HomeScreen(
-              name: snapshot.data!,
-            );
-          }
-
-          // إذا الاسم غير موجود
-          return const WelcomeScreen();
-        },
-      ),
-    );
+    return const WelcomeScreen();
   }
 }

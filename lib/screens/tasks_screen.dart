@@ -1,18 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../widgets/bottom_nav_bar.dart';
-import 'complete_tasks_screen.dart';
-import 'home_screen.dart';
-import 'profile_screen.dart';
-
+import '../models/task_model.dart';
+import '../widgets/task_list_widget.dart';
 
 // =========================================================
 // To Do Tasks Screen
 // =========================================================
 
-// هاي الصفحة مسؤولة عن عرض التاسكات اللي لسا ما اكتملت
 class TasksScreen extends StatefulWidget {
-
   const TasksScreen({super.key});
 
   @override
@@ -20,333 +18,169 @@ class TasksScreen extends StatefulWidget {
       _TasksScreenState();
 }
 
+class _TasksScreenState
+    extends State<TasksScreen> {
 
-class _TasksScreenState extends State<TasksScreen> {
+  // التاسكات غير المكتملة
+  List<TaskModel> tasks = [];
 
   // =========================================================
-  // التنقل بين صفحات الـ Bottom Navigation
+  // بداية الشاشة
   // =========================================================
 
-  void onBottomNavTap(int index) {
+  @override
+  void initState() {
+    super.initState();
 
-    // إذا ضغطنا على Home
-    if (index == 0) {
-
-      Navigator.pushReplacement(
-        context,
-
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(
-            name: "",
-          ),
-        ),
-      );
-
-      return;
-    }
-
-
-    // إذا ضغطنا على To Do
-    // إحنا أصلًا بصفحة To Do
-    if (index == 1) {
-      return;
-    }
-
-
-    // إذا ضغطنا على Completed
-    if (index == 2) {
-
-      Navigator.pushReplacement(
-        context,
-
-        MaterialPageRoute(
-          builder: (_) =>
-          const CompleteTasksScreen(),
-        ),
-      );
-
-      return;
-    }
-
-
-    // إذا ضغطنا على Profile
-    if (index == 3) {
-
-      Navigator.pushReplacement(
-        context,
-
-        MaterialPageRoute(
-          builder: (_) =>
-          const ProfileScreen(),
-        ),
-      );
-
-      return;
-    }
+    loadTasks();
   }
 
+  // =========================================================
+  // تحميل التاسكات
+  // =========================================================
+
+  Future<void> loadTasks() async {
+    final pref =
+    await SharedPreferences.getInstance();
+
+    final savedTasks =
+        pref.getStringList("tasks") ?? [];
+
+    final List<TaskModel> loadedTasks = [];
+
+    for (final task in savedTasks) {
+      try {
+        final decoded = jsonDecode(task);
+
+        final taskModel =
+        TaskModel.fromJson(
+          Map<String, dynamic>.from(decoded),
+        );
+
+        if (!taskModel.isCompleted) {
+          loadedTasks.add(taskModel);
+        }
+      } catch (e) {
+        // تجاهل أي Task فيها بيانات غير صحيحة
+      }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      tasks = loadedTasks;
+    });
+  }
+
+  // =========================================================
+  // تحديث حالة التاسك
+  // =========================================================
+
+  Future<void> updateTask(
+      TaskModel task,
+      bool value,
+      ) async {
+    final pref =
+    await SharedPreferences.getInstance();
+
+    final savedTasks =
+        pref.getStringList("tasks") ?? [];
+
+    final List<String> updatedTasks = [];
+
+    for (final item in savedTasks) {
+      final decoded = jsonDecode(item);
+
+      final currentTask =
+      TaskModel.fromJson(
+        Map<String, dynamic>.from(decoded),
+      );
+
+      if (currentTask.taskName ==
+          task.taskName &&
+          currentTask.taskDescription ==
+              task.taskDescription) {
+
+        final updatedTask =
+        currentTask.copyWith(
+          isCompleted: value,
+        );
+
+        updatedTasks.add(
+          jsonEncode(
+            updatedTask.toJson(),
+          ),
+        );
+      } else {
+        updatedTasks.add(item);
+      }
+    }
+
+    await pref.setStringList(
+      "tasks",
+      updatedTasks,
+    );
+
+    await loadTasks();
+  }
+
+  // =========================================================
+  // Build
+  // =========================================================
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
     return Scaffold(
-
-      // =====================================================
-      // خلفية الصفحة
-      // =====================================================
-
       backgroundColor:
-      const Color(0xFF181818),
-
-
-      // =====================================================
-      // App Bar
-      // =====================================================
+      theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
-
-        // نفس لون خلفية التطبيق
-        backgroundColor:
-        const Color(0xFF181818),
-
-        // بنشيل الظل
-        elevation: 0,
-
-
-        // زر الرجوع
-        leading: IconButton(
-
-          onPressed: () {
-
-            // برجع للصفحة السابقة
-            Navigator.pop(context);
-          },
-
-
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-        ),
-
-
-        // عنوان الصفحة
         title: const Text(
           "To Do Tasks",
-
           style: TextStyle(
-            color: Colors.white,
             fontSize: 17,
           ),
         ),
       ),
 
-
-      // =====================================================
-      // محتوى الصفحة
-      // =====================================================
-
       body: SafeArea(
+        child: tasks.isEmpty
+            ? Center(
+          child: Text(
+            "No tasks to do",
+            style:
+            theme.textTheme.bodySmall,
+          ),
+        )
+            : ListView.builder(
+          padding:
+          const EdgeInsets.all(13),
 
-        child: Column(
-          children: [
+          itemCount:
+          tasks.length,
 
-            // =================================================
-            // مكان التاسكات
-            // =================================================
+          itemBuilder:
+              (context, index) {
 
-            Expanded(
-              child: Padding(
-                padding:
-                const EdgeInsets.symmetric(
-                  horizontal: 13,
-                  vertical: 8,
-                ),
+            final task =
+            tasks[index];
 
-                child: Column(
-                  children: [
+            return TaskListWidget(
+              task: task,
 
-                    // -------------------------------------------------
-                    // مثال مؤقت للتاسكات
-                    // -------------------------------------------------
-                    //
-                    // هاي حاليًا مجرد UI مؤقت
-                    // بعدين بنربطها بالـ SharedPreferences
-                    // ونجيب التاسكات الحقيقية
-                    //
-
-                    buildTaskItem(
-                      "Finish video in flutter Course",
-                      "Watch First video in elgndy website",
-                    ),
-
-                    buildTaskItem(
-                      "Finish video in flutter Course",
-                      "",
-                    ),
-
-                    buildTaskItem(
-                      "Finish video in flutter Course",
-                      "",
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              onChanged: (value) {
+                if (value != null) {
+                  updateTask(
+                    task,
+                    value,
+                  );
+                }
+              },
+            );
+          },
         ),
-      ),
-
-
-      // =====================================================
-      // Bottom Navigation
-      // =====================================================
-
-      bottomNavigationBar: BottomNavBar(
-
-        // رقم 1 يعني إحنا بصفحة To Do
-        currentIndex: 1,
-
-
-        // لما المستخدم يضغط على أي أيقونة
-        onItemSelected: onBottomNavTap,
-      ),
-    );
-  }
-
-
-  // =========================================================
-  // شكل الـ Task
-  // =========================================================
-
-  // هاي الدالة بس بتعمل شكل التاسك
-  // بعدين رح نستخدم TaskModel بدل النصوص الثابتة
-  Widget buildTaskItem(
-      String title,
-      String description,
-      ) {
-
-    return Container(
-
-      // مسافة بين كل Task والثانية
-      margin:
-      const EdgeInsets.only(bottom: 7),
-
-
-      // مسافات داخل الـ Container
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 4,
-      ),
-
-
-      // شكل خلفية التاسك
-      decoration: BoxDecoration(
-
-        color:
-        const Color(0xFF292929),
-
-        borderRadius:
-        BorderRadius.circular(13),
-      ),
-
-
-      child: Row(
-        children: [
-
-          // =================================================
-          // Checkbox
-          // =================================================
-
-          // حاليًا بس شكله موجود
-          // اللوجيك الحقيقي رح نضيفه لما نربط الصفحة بالـ Tasks
-          Checkbox(
-            value: false,
-
-            onChanged: (value) {
-              // اللوجيك رح نضيفه لاحقًا
-            },
-
-            activeColor:
-            const Color(0xFF00D084),
-
-            checkColor:
-            Colors.white,
-
-            side:
-            const BorderSide(
-              color: Colors.white54,
-            ),
-
-            visualDensity:
-            VisualDensity.compact,
-          ),
-
-
-          // =================================================
-          // معلومات التاسك
-          // =================================================
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-
-              children: [
-
-                // اسم التاسك
-                Text(
-                  title,
-
-                  maxLines: 1,
-
-                  overflow:
-                  TextOverflow.ellipsis,
-
-                  style:
-                  const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                  ),
-                ),
-
-
-                // إذا في Description بنعرضه
-                if (description.isNotEmpty)
-                  Text(
-                    description,
-
-                    maxLines: 1,
-
-                    overflow:
-                    TextOverflow.ellipsis,
-
-                    style:
-                    const TextStyle(
-                      color:
-                      Color(0xFFBDBDBD),
-                      fontSize: 9,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-
-          // =================================================
-          // الثلاث نقاط
-          // =================================================
-
-          const Icon(
-            Icons.more_vert,
-
-            color:
-            Color(0xFF858585),
-
-            size: 18,
-          ),
-        ],
       ),
     );
   }
