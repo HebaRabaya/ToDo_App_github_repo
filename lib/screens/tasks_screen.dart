@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/preferences_manager.dart';
-import '../models/task_model.dart';
 import '../widgets/task_item_widget.dart';
 
 // =========================================================
 // To Do Tasks Screen
 // =========================================================
 
+// هاي الشاشة بتعرض التاسكات اللي لسا ما خلصناها.
+//
+// الصفحة بتسمع لأي تغيير بصير داخل PreferencesManager.
+// يعني لما نضيف أو نعدل أو نحذف Task، القائمة بتتحدث
+// لحالها بدون ما نحتاج نرجع نفتح الصفحة.
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
 
@@ -20,9 +24,9 @@ class TasksScreen extends StatefulWidget {
 // Logic
 // =========================================================
 
-class _TasksScreenState
-    extends State<TasksScreen> {
-  List<TaskModel> tasks = [];
+class _TasksScreenState extends State<TasksScreen> {
+  // التاسكات غير المكتملة.
+  List tasks = [];
 
   // =======================================================
   // Init
@@ -32,7 +36,28 @@ class _TasksScreenState
   void initState() {
     super.initState();
 
+    // أول ما الصفحة تشتغل بنجيب التاسكات.
     _loadTasks();
+
+    // بنخلي الصفحة تسمع لأي تغيير بصير على البيانات.
+    PreferencesManager.instance.addListener(
+      _loadTasks,
+    );
+  }
+
+  // =======================================================
+  // Dispose
+  // =======================================================
+
+  @override
+  void dispose() {
+    // مهم نشيل الـ Listener لما الصفحة تنتهي.
+    // عشان ما يضل مربوط بالصفحة ويسبب مشاكل بالذاكرة.
+    PreferencesManager.instance.removeListener(
+      _loadTasks,
+    );
+
+    super.dispose();
   }
 
   // =======================================================
@@ -43,12 +68,16 @@ class _TasksScreenState
     final allTasks =
         PreferencesManager.instance.tasks;
 
+    final todoTasks = allTasks
+        .where(
+          (task) => !task.isCompleted,
+    )
+        .toList();
+
+    if (!mounted) return;
+
     setState(() {
-      tasks = allTasks
-          .where(
-            (task) => !task.isCompleted,
-      )
-          .toList();
+      tasks = todoTasks;
     });
   }
 
@@ -58,12 +87,15 @@ class _TasksScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor:
       theme.scaffoldBackgroundColor,
+
+      // ===================================================
+      // App Bar
+      // ===================================================
 
       appBar: AppBar(
         title: const Text(
@@ -74,20 +106,22 @@ class _TasksScreenState
         ),
       ),
 
+      // ===================================================
+      // Body
+      // ===================================================
+
       body: SafeArea(
         child: tasks.isEmpty
             ? Center(
           child: Text(
             "No tasks to do",
-            style: theme
-                .textTheme
-                .bodySmall,
+            style:
+            theme.textTheme.bodySmall,
           ),
         )
             : ListView.builder(
           padding:
-          const EdgeInsets
-              .all(13),
+          const EdgeInsets.all(13),
 
           itemCount:
           tasks.length,
@@ -95,9 +129,10 @@ class _TasksScreenState
           itemBuilder:
               (context, index) {
             return TaskItemWidget(
-              task:
-              tasks[index],
+              task: tasks[index],
 
+              // لما التاسك تتعدل
+              // بنعيد قراءة القائمة.
               onTaskUpdated:
               _loadTasks,
             );

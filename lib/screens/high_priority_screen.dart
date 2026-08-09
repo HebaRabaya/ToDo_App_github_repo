@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/preferences_manager.dart';
-import '../models/task_model.dart';
 import '../widgets/task_item_widget.dart';
 
 // =========================================================
 // High Priority Screen
 // =========================================================
 
-class HighPriorityScreen
-    extends StatefulWidget {
+// هاي الشاشة بتعرض كل التاسكات اللي عليها
+// High Priority.
+//
+// الصفحة بتسمع لأي تغيير بصير على PreferencesManager
+// عشان القائمة تضل محدثة دائمًا.
+class HighPriorityScreen extends StatefulWidget {
   const HighPriorityScreen({
     super.key,
   });
 
   @override
-  State<HighPriorityScreen>
-  createState() =>
+  State<HighPriorityScreen> createState() =>
       _HighPriorityScreenState();
 }
 
@@ -26,7 +28,8 @@ class HighPriorityScreen
 
 class _HighPriorityScreenState
     extends State<HighPriorityScreen> {
-  List<TaskModel> tasks = [];
+  // التاسكات ذات الأولوية العالية.
+  List tasks = [];
 
   // =======================================================
   // Init
@@ -36,7 +39,27 @@ class _HighPriorityScreenState
   void initState() {
     super.initState();
 
+    // تحميل التاسكات أول مرة.
     _loadTasks();
+
+    // الاستماع لأي تغيير على التاسكات.
+    PreferencesManager.instance.addListener(
+      _loadTasks,
+    );
+  }
+
+  // =======================================================
+  // Dispose
+  // =======================================================
+
+  @override
+  void dispose() {
+    // إزالة الـ Listener لما الصفحة تنتهي.
+    PreferencesManager.instance.removeListener(
+      _loadTasks,
+    );
+
+    super.dispose();
   }
 
   // =======================================================
@@ -47,13 +70,16 @@ class _HighPriorityScreenState
     final allTasks =
         PreferencesManager.instance.tasks;
 
+    final highPriorityTasks = allTasks
+        .where(
+          (task) => task.isHighPriority,
+    )
+        .toList();
+
+    if (!mounted) return;
+
     setState(() {
-      tasks = allTasks
-          .where(
-            (task) =>
-        task.isHighPriority,
-      )
-          .toList();
+      tasks = highPriorityTasks;
     });
   }
 
@@ -63,12 +89,15 @@ class _HighPriorityScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor:
       theme.scaffoldBackgroundColor,
+
+      // ===================================================
+      // App Bar
+      // ===================================================
 
       appBar: AppBar(
         title: const Text(
@@ -79,20 +108,22 @@ class _HighPriorityScreenState
         ),
       ),
 
+      // ===================================================
+      // Body
+      // ===================================================
+
       body: SafeArea(
         child: tasks.isEmpty
             ? Center(
           child: Text(
             "No high priority tasks",
-            style: theme
-                .textTheme
-                .bodySmall,
+            style:
+            theme.textTheme.bodySmall,
           ),
         )
             : ListView.builder(
           padding:
-          const EdgeInsets
-              .all(13),
+          const EdgeInsets.all(13),
 
           itemCount:
           tasks.length,
@@ -100,9 +131,10 @@ class _HighPriorityScreenState
           itemBuilder:
               (context, index) {
             return TaskItemWidget(
-              task:
-              tasks[index],
+              task: tasks[index],
 
+              // لما التاسك تتعدل
+              // بنعيد تحميل القائمة.
               onTaskUpdated:
               _loadTasks,
             );
