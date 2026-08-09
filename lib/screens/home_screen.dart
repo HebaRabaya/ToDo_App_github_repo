@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/services/preferences_manager.dart';
 import '../models/task_model.dart';
 import '../widgets/achieved_tasks_widget.dart';
 import '../widgets/high_priority_tasks_widget.dart';
@@ -22,138 +20,108 @@ class HomeScreen extends StatefulWidget {
       _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+// =========================================================
+// Logic
+// =========================================================
 
+class _HomeScreenState
+    extends State<HomeScreen> {
   List<TaskModel> tasks = [];
 
   String userName = "";
 
-  // =========================================================
-  // بداية الشاشة
-  // =========================================================
+  // =======================================================
+  // Init
+  // =======================================================
 
   @override
   void initState() {
     super.initState();
 
-    loadUserName();
-    loadTasks();
+    _loadData();
   }
 
-  // =========================================================
-  // قراءة اسم المستخدم
-  // =========================================================
+  // =======================================================
+  // Load Data
+  // =======================================================
 
-  Future<void> loadUserName() async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedName =
-        pref.getString("username") ?? "";
-
-    if (!mounted) return;
+  void _loadData() {
+    final manager =
+        PreferencesManager.instance;
 
     setState(() {
-      userName = savedName;
+      userName =
+          manager.username;
+
+      tasks =
+          manager.tasks;
     });
   }
 
-  // =========================================================
-  // قراءة التاسكات
-  // =========================================================
+  // =======================================================
+  // Open Add Task
+  // =======================================================
 
-  Future<void> loadTasks() async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedTasks =
-        pref.getStringList("tasks") ?? [];
-
-    final List<TaskModel> loadedTasks = [];
-
-    for (final task in savedTasks) {
-      try {
-        final decoded = jsonDecode(task);
-
-        loadedTasks.add(
-          TaskModel.fromJson(
-            Map<String, dynamic>.from(decoded),
-          ),
-        );
-      } catch (e) {
-        // إذا في Task فيها مشكلة
-      }
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      tasks = loadedTasks;
-    });
-  }
-
-  // =========================================================
-  // حفظ التاسكات
-  // =========================================================
-
-  Future<void> saveTasks() async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final encodedTasks = tasks
-        .map(
-          (task) => jsonEncode(
-        task.toJson(),
+  Future<void> _openAddTask() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+        const AddTaskScreen(),
       ),
-    )
-        .toList();
-
-    await pref.setStringList(
-      "tasks",
-      encodedTasks,
     );
+
+    _loadData();
   }
 
-  // =========================================================
-  // تغيير حالة التاسك
-  // =========================================================
+  // =======================================================
+  // Open High Priority
+  // =======================================================
 
-  Future<void> changeTaskStatus(
-      int index,
-      bool value,
-      ) async {
-    setState(() {
-      tasks[index] =
-          tasks[index].copyWith(
-            isCompleted: value,
-          );
-    });
+  Future<void>
+  _openHighPriority() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+        const HighPriorityScreen(),
+      ),
+    );
 
-    await saveTasks();
+    _loadData();
   }
 
-  // =========================================================
+  // =======================================================
   // Build
-  // =========================================================
+  // =======================================================
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+    Theme.of(context);
 
-    final completedTasks = tasks
-        .where((task) => task.isCompleted)
-        .length;
+    final completedTasks =
+        tasks
+            .where(
+              (task) =>
+          task.isCompleted,
+        )
+            .length;
 
-    final totalTasks = tasks.length;
+    final totalTasks =
+        tasks.length;
 
     final double progress =
     totalTasks == 0
         ? 0
-        : completedTasks / totalTasks;
+        : completedTasks /
+        totalTasks;
 
-    final highPriorityTasks = tasks
+    final highPriorityTasks =
+    tasks
         .where(
-          (task) => task.isHighPriority,
+          (task) =>
+      task.isHighPriority,
     )
         .toList();
 
@@ -168,19 +136,12 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton:
       FloatingActionButton.extended(
         backgroundColor:
-        const Color(0xFF52C070),
+        const Color(
+          0xFF52C070,
+        ),
 
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-              const AddTaskScreen(),
-            ),
-          );
-
-          await loadTasks();
-        },
+        onPressed:
+        _openAddTask,
 
         icon: const Icon(
           Icons.add,
@@ -200,16 +161,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // =====================================================
 
       body: SafeArea(
-        child: CustomScrollView(
+        child:
+        CustomScrollView(
           slivers: [
-
             // =================================================
             // Header
             // =================================================
 
             SliverPadding(
               padding:
-              const EdgeInsets.fromLTRB(
+              const EdgeInsets
+                  .fromLTRB(
                 15,
                 15,
                 15,
@@ -220,8 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Row(
                   children: [
-
-                    // صورة البروفايل
+                    // Profile Image
                     Container(
                       width: 44,
                       height: 44,
@@ -229,11 +190,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration:
                       BoxDecoration(
                         borderRadius:
-                        BorderRadius.circular(
+                        BorderRadius
+                            .circular(
                           8,
                         ),
 
-                        border: Border.all(
+                        border:
+                        Border.all(
                           color:
                           const Color(
                             0xFF9747FF,
@@ -242,15 +205,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      child: ClipRRect(
+                      child:
+                      ClipRRect(
                         borderRadius:
-                        BorderRadius.circular(
+                        BorderRadius
+                            .circular(
                           6,
                         ),
 
-                        child: Image.asset(
+                        child:
+                        Image.asset(
                           "assets/images/profile.png",
-                          fit: BoxFit.cover,
+                          fit:
+                          BoxFit.cover,
                         ),
                       ),
                     ),
@@ -259,19 +226,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 7,
                     ),
 
-                    // اسم المستخدم
+                    // User Name
                     Expanded(
-                      child: Column(
+                      child:
+                      Column(
                         crossAxisAlignment:
                         CrossAxisAlignment
                             .start,
 
                         children: [
-
                           Text(
                             "Good Evening $userName 👋🏻",
+
                             style:
-                            theme.textTheme
+                            theme
+                                .textTheme
                                 .bodyMedium
                                 ?.copyWith(
                               fontSize: 13,
@@ -284,8 +253,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           Text(
                             "One task at a time. One step closer.",
+
                             style:
-                            theme.textTheme
+                            theme
+                                .textTheme
                                 .bodySmall
                                 ?.copyWith(
                               fontSize: 11,
@@ -305,7 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverPadding(
               padding:
-              const EdgeInsets.fromLTRB(
+              const EdgeInsets
+                  .fromLTRB(
                 15,
                 25,
                 15,
@@ -316,13 +288,14 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment
+                      .start,
 
                   children: [
                     Text(
                       "Yuhuu, Your work Is",
-                      style:
-                      theme.textTheme
+                      style: theme
+                          .textTheme
                           .titleMedium
                           ?.copyWith(
                         fontSize: 23,
@@ -331,8 +304,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     Text(
                       "almost done! 👋🏻",
-                      style:
-                      theme.textTheme
+                      style: theme
+                          .textTheme
                           .titleMedium
                           ?.copyWith(
                         fontSize: 23,
@@ -349,7 +322,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverPadding(
               padding:
-              const EdgeInsets.fromLTRB(
+              const EdgeInsets
+                  .fromLTRB(
                 15,
                 16,
                 15,
@@ -376,10 +350,12 @@ class _HomeScreenState extends State<HomeScreen> {
             // High Priority
             // =================================================
 
-            if (highPriorityTasks.isNotEmpty)
+            if (highPriorityTasks
+                .isNotEmpty)
               SliverPadding(
                 padding:
-                const EdgeInsets.fromLTRB(
+                const EdgeInsets
+                    .fromLTRB(
                   15,
                   12,
                   15,
@@ -393,33 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     tasks:
                     highPriorityTasks,
 
-                    onTaskChanged:
-                        (task) {
-                      final index =
-                      tasks.indexOf(
-                        task,
-                      );
-
-                      if (index != -1) {
-                        changeTaskStatus(
-                          index,
-                          !task.isCompleted,
-                        );
-                      }
-                    },
-
                     onViewAll:
-                        () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                          const HighPriorityScreen(),
-                        ),
-                      );
+                    _openHighPriority,
 
-                      await loadTasks();
-                    },
+                    onTaskUpdated:
+                    _loadData,
                   ),
                 ),
               ),
@@ -430,7 +384,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverPadding(
               padding:
-              const EdgeInsets.fromLTRB(
+              const EdgeInsets
+                  .fromLTRB(
                 15,
                 18,
                 15,
@@ -441,8 +396,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Text(
                   "My Tasks",
-                  style:
-                  theme.textTheme.bodyMedium
+                  style: theme
+                      .textTheme
+                      .bodyMedium
                       ?.copyWith(
                     fontSize: 14,
                   ),
@@ -458,12 +414,10 @@ class _HomeScreenState extends State<HomeScreen> {
               tasks: tasks,
 
               onTaskChanged:
-                  (index, value) {
-                changeTaskStatus(
-                  index,
-                  value,
-                );
-              },
+                  (_, __) {},
+
+              onTaskUpdated:
+              _loadData,
             ),
 
             const SliverPadding(

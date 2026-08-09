@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 // Achieved Tasks Widget
 // =========================================================
 
+// هذا الـ Widget بعرض:
+// - عدد التاسكات المكتملة
+// - العدد الكلي
+// - نسبة الإنجاز
 class AchievedTasksWidget
     extends StatelessWidget {
-
   final int completedTasks;
   final int totalTasks;
   final double progress;
@@ -20,10 +23,15 @@ class AchievedTasksWidget
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+    Theme.of(context);
+
+    final percentage =
+    (progress * 100).toInt();
 
     return Container(
-      width: double.infinity,
+      width:
+      double.infinity,
 
       padding:
       const EdgeInsets.symmetric(
@@ -40,31 +48,37 @@ class AchievedTasksWidget
 
       child: Row(
         mainAxisAlignment:
-        MainAxisAlignment.spaceBetween,
+        MainAxisAlignment
+            .spaceBetween,
 
         children: [
-
           Column(
             crossAxisAlignment:
-            CrossAxisAlignment.start,
+            CrossAxisAlignment
+                .start,
 
             children: [
-
               Text(
                 "Achieved Tasks",
-                style:
-                theme.textTheme.bodyMedium
+
+                style: theme
+                    .textTheme
+                    .bodyMedium
                     ?.copyWith(
                   fontSize: 13,
                 ),
               ),
 
-              const SizedBox(height: 3),
+              const SizedBox(
+                height: 3,
+              ),
 
               Text(
                 "$completedTasks Out of $totalTasks Done",
-                style:
-                theme.textTheme.bodySmall
+
+                style: theme
+                    .textTheme
+                    .bodySmall
                     ?.copyWith(
                   fontSize: 10,
                 ),
@@ -85,9 +99,9 @@ class AchievedTasksWidget
               Alignment.center,
 
               children: [
-
                 CircularProgressIndicator(
-                  value: progress,
+                  value:
+                  progress,
 
                   strokeWidth: 2,
 
@@ -108,10 +122,11 @@ class AchievedTasksWidget
                 ),
 
                 Text(
-                  "${(progress * 100).toInt()}%",
+                  "$percentage%",
 
-                  style:
-                  theme.textTheme.bodyMedium
+                  style: theme
+                      .textTheme
+                      .bodyMedium
                       ?.copyWith(
                     fontSize: 9,
                   ),

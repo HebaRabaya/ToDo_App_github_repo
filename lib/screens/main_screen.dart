@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'home_screen.dart';
-import 'tasks_screen.dart';
 import 'complete_tasks_screen.dart';
+import 'home_screen.dart';
 import 'profile_screen.dart';
-
-import '../widgets/bottom_nav_bar.dart';
+import 'tasks_screen.dart';
 
 // =========================================================
 // Main Screen
@@ -17,7 +15,6 @@ import '../widgets/bottom_nav_bar.dart';
 // 1 = To Do
 // 2 = Completed
 // 3 = Profile
-
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -32,13 +29,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState
     extends State<MainScreen> {
-
   // الصفحة الحالية
   int currentIndex = 0;
 
-  // =========================================================
-  // الصفحات
-  // =========================================================
+  // =======================================================
+  // Pages
+  // =======================================================
 
   final List<Widget> pages = const [
     HomeScreen(),
@@ -47,30 +43,33 @@ class _MainScreenState
     ProfileScreen(),
   ];
 
-  // =========================================================
-  // تغيير الصفحة
-  // =========================================================
+  // =======================================================
+  // Change Page
+  // =======================================================
 
-  void changePage(int index) {
+  void changePage(
+      int index,
+      ) {
     setState(() {
       currentIndex = index;
     });
   }
 
-  // =========================================================
+  // =======================================================
   // Build
-  // =========================================================
+  // =======================================================
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final theme =
+    Theme.of(context);
 
-      // بنخلي لون الصفحة ياخذ من الـ Theme
+    return Scaffold(
       backgroundColor:
-      Theme.of(context).scaffoldBackgroundColor,
+      theme.scaffoldBackgroundColor,
 
       // =====================================================
-      // الصفحة الحالية
+      // Current Page
       // =====================================================
 
       body: IndexedStack(
@@ -82,9 +81,63 @@ class _MainScreenState
       // Bottom Navigation
       // =====================================================
 
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: currentIndex,
-        onItemSelected: changePage,
+      bottomNavigationBar:
+      NavigationBar(
+        selectedIndex:
+        currentIndex,
+
+        onDestinationSelected:
+        changePage,
+
+        backgroundColor:
+        theme.cardColor,
+
+        indicatorColor:
+        theme.colorScheme.primary
+            .withValues(
+          alpha: 0.15,
+        ),
+
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(
+              Icons.home_outlined,
+            ),
+            selectedIcon:
+            Icon(Icons.home),
+            label: "Home",
+          ),
+
+          NavigationDestination(
+            icon: Icon(
+              Icons
+                  .checklist_outlined,
+            ),
+            selectedIcon:
+            Icon(Icons.checklist),
+            label: "To Do",
+          ),
+
+          NavigationDestination(
+            icon: Icon(
+              Icons
+                  .task_alt_outlined,
+            ),
+            selectedIcon:
+            Icon(Icons.task_alt),
+            label: "Done",
+          ),
+
+          NavigationDestination(
+            icon: Icon(
+              Icons
+                  .person_outline,
+            ),
+            selectedIcon:
+            Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
       ),
     );
   }

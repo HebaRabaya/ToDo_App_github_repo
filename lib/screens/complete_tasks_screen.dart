@@ -1,136 +1,69 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/services/preferences_manager.dart';
 import '../models/task_model.dart';
-import '../widgets/task_list_widget.dart';
+import '../widgets/task_item_widget.dart';
 
 // =========================================================
 // Completed Tasks Screen
 // =========================================================
 
-class CompleteTasksScreen extends StatefulWidget {
-  const CompleteTasksScreen({super.key});
+class CompleteTasksScreen
+    extends StatefulWidget {
+  const CompleteTasksScreen({
+    super.key,
+  });
 
   @override
-  State<CompleteTasksScreen> createState() =>
+  State<CompleteTasksScreen>
+  createState() =>
       _CompleteTasksScreenState();
 }
 
+// =========================================================
+// Logic
+// =========================================================
+
 class _CompleteTasksScreenState
     extends State<CompleteTasksScreen> {
-
-  // التاسكات المكتملة
   List<TaskModel> tasks = [];
 
-  // =========================================================
-  // بداية الشاشة
-  // =========================================================
+  // =======================================================
+  // Init
+  // =======================================================
 
   @override
   void initState() {
     super.initState();
 
-    loadTasks();
+    _loadTasks();
   }
 
-  // =========================================================
-  // تحميل التاسكات المكتملة
-  // =========================================================
+  // =======================================================
+  // Load Completed Tasks
+  // =======================================================
 
-  Future<void> loadTasks() async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedTasks =
-        pref.getStringList("tasks") ?? [];
-
-    final List<TaskModel> loadedTasks = [];
-
-    for (final item in savedTasks) {
-      try {
-        final decoded = jsonDecode(item);
-
-        final task =
-        TaskModel.fromJson(
-          Map<String, dynamic>.from(decoded),
-        );
-
-        if (task.isCompleted) {
-          loadedTasks.add(task);
-        }
-      } catch (e) {
-        // تجاهل البيانات الخاطئة
-      }
-    }
-
-    if (!mounted) return;
+  void _loadTasks() {
+    final allTasks =
+        PreferencesManager.instance.tasks;
 
     setState(() {
-      tasks = loadedTasks;
+      tasks = allTasks
+          .where(
+            (task) => task.isCompleted,
+      )
+          .toList();
     });
   }
 
-  // =========================================================
-  // تحديث التاسك
-  // =========================================================
-
-  Future<void> updateTask(
-      TaskModel task,
-      bool value,
-      ) async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedTasks =
-        pref.getStringList("tasks") ?? [];
-
-    final List<String> updatedTasks = [];
-
-    for (final item in savedTasks) {
-      final decoded = jsonDecode(item);
-
-      final currentTask =
-      TaskModel.fromJson(
-        Map<String, dynamic>.from(decoded),
-      );
-
-      if (currentTask.taskName ==
-          task.taskName &&
-          currentTask.taskDescription ==
-              task.taskDescription) {
-
-        final updatedTask =
-        currentTask.copyWith(
-          isCompleted: value,
-        );
-
-        updatedTasks.add(
-          jsonEncode(
-            updatedTask.toJson(),
-          ),
-        );
-      } else {
-        updatedTasks.add(item);
-      }
-    }
-
-    await pref.setStringList(
-      "tasks",
-      updatedTasks,
-    );
-
-    await loadTasks();
-  }
-
-  // =========================================================
+  // =======================================================
   // Build
-  // =========================================================
+  // =======================================================
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+    Theme.of(context);
 
     return Scaffold(
       backgroundColor:
@@ -150,34 +83,27 @@ class _CompleteTasksScreenState
             ? Center(
           child: Text(
             "No completed tasks",
-            style:
-            theme.textTheme.bodySmall,
+            style: theme
+                .textTheme
+                .bodySmall,
           ),
         )
             : ListView.builder(
           padding:
-          const EdgeInsets.all(13),
+          const EdgeInsets
+              .all(13),
 
           itemCount:
           tasks.length,
 
           itemBuilder:
               (context, index) {
+            return TaskItemWidget(
+              task:
+              tasks[index],
 
-            final task =
-            tasks[index];
-
-            return TaskListWidget(
-              task: task,
-
-              onChanged: (value) {
-                if (value != null) {
-                  updateTask(
-                    task,
-                    value,
-                  );
-                }
-              },
+              onTaskUpdated:
+              _loadTasks,
             );
           },
         ),

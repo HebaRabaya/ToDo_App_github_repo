@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/services/preferences_manager.dart';
 import 'core/theme/dark_theme.dart';
 import 'core/theme/light_theme.dart';
+import 'core/theme/theme_controller.dart';
 
 import 'screens/main_screen.dart';
 import 'screens/welcome_screen.dart';
@@ -11,20 +12,20 @@ import 'screens/welcome_screen.dart';
 // Main
 // =========================================================
 
-// أول ملف ببدأ منه التطبيق
+// أول ملف ببدأ منه التطبيق.
 Future<void> main() async {
-  // بنتأكد إن Flutter جاهز
+  // بنتأكد إن Flutter جاهز.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // تجهيز PreferencesManager
+  // تجهيز PreferencesManager قبل تشغيل التطبيق.
   await PreferencesManager.instance.init();
 
-  // تشغيل التطبيق
+  // تشغيل التطبيق.
   runApp(const MyApp());
 }
 
 // =========================================================
-// MyApp
+// My App
 // =========================================================
 
 class MyApp extends StatelessWidget {
@@ -33,12 +34,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: PreferencesManager.instance,
-
+      animation: Listenable.merge([
+        PreferencesManager.instance,
+        ThemeController.instance,
+      ]),
       builder: (context, child) {
-        // بنحدد الثيم حسب القيمة المحفوظة
-        final bool isDark =
-            PreferencesManager.instance.isDarkMode;
+        final themeMode =
+            ThemeController.instance.themeMode;
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -51,12 +53,10 @@ class MyApp extends StatelessWidget {
 
           darkTheme: DarkTheme.theme,
 
-          themeMode: isDark
-              ? ThemeMode.dark
-              : ThemeMode.light,
+          themeMode: themeMode,
 
           // =================================================
-          // أول شاشة
+          // First Screen
           // =================================================
 
           home: const StartScreen(),
@@ -71,8 +71,12 @@ class MyApp extends StatelessWidget {
 // =========================================================
 
 // هاي الشاشة بتقرر:
-// إذا المستخدم موجود -> MainScreen
-// إذا مش موجود -> WelcomeScreen
+//
+// إذا المستخدم موجود
+// → MainScreen
+//
+// إذا مش موجود
+// → WelcomeScreen
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 

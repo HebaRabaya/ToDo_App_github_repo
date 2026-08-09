@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/services/preferences_manager.dart';
 import '../models/task_model.dart';
-import '../widgets/task_list_widget.dart';
+import '../widgets/task_item_widget.dart';
 
 // =========================================================
 // High Priority Screen
@@ -12,10 +10,13 @@ import '../widgets/task_list_widget.dart';
 
 class HighPriorityScreen
     extends StatefulWidget {
-  const HighPriorityScreen({super.key});
+  const HighPriorityScreen({
+    super.key,
+  });
 
   @override
-  State<HighPriorityScreen> createState() =>
+  State<HighPriorityScreen>
+  createState() =>
       _HighPriorityScreenState();
 }
 
@@ -25,7 +26,6 @@ class HighPriorityScreen
 
 class _HighPriorityScreenState
     extends State<HighPriorityScreen> {
-
   List<TaskModel> tasks = [];
 
   // =======================================================
@@ -36,102 +36,25 @@ class _HighPriorityScreenState
   void initState() {
     super.initState();
 
-    loadTasks();
+    _loadTasks();
   }
 
   // =======================================================
-  // Load High Priority
+  // Load High Priority Tasks
   // =======================================================
 
-  Future<void> loadTasks() async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedTasks =
-        pref.getStringList("tasks") ?? [];
-
-    final List<TaskModel> loadedTasks =
-    [];
-
-    for (final item in savedTasks) {
-      try {
-        final decoded =
-        jsonDecode(item);
-
-        final task =
-        TaskModel.fromJson(
-          Map<String, dynamic>.from(decoded),
-        );
-
-        if (task.isHighPriority) {
-          loadedTasks.add(task);
-        }
-      } catch (_) {}
-    }
-
-    if (!mounted) return;
+  void _loadTasks() {
+    final allTasks =
+        PreferencesManager.instance.tasks;
 
     setState(() {
-      tasks = loadedTasks;
+      tasks = allTasks
+          .where(
+            (task) =>
+        task.isHighPriority,
+      )
+          .toList();
     });
-  }
-
-  // =======================================================
-  // Update Task
-  // =======================================================
-
-  Future<void> updateTask(
-      TaskModel task,
-      bool value,
-      ) async {
-    final pref =
-    await SharedPreferences.getInstance();
-
-    final savedTasks =
-        pref.getStringList("tasks") ?? [];
-
-    final List<String> updatedTasks =
-    [];
-
-    for (final item in savedTasks) {
-      try {
-        final decoded =
-        jsonDecode(item);
-
-        final currentTask =
-        TaskModel.fromJson(
-          Map<String, dynamic>.from(decoded),
-        );
-
-        if (currentTask.taskName ==
-            task.taskName &&
-            currentTask.taskDescription ==
-                task.taskDescription) {
-
-          final updatedTask =
-          currentTask.copyWith(
-            isCompleted: value,
-          );
-
-          updatedTasks.add(
-            jsonEncode(
-              updatedTask.toJson(),
-            ),
-          );
-        } else {
-          updatedTasks.add(item);
-        }
-      } catch (_) {
-        updatedTasks.add(item);
-      }
-    }
-
-    await pref.setStringList(
-      "tasks",
-      updatedTasks,
-    );
-
-    await loadTasks();
   }
 
   // =======================================================
@@ -140,23 +63,14 @@ class _HighPriorityScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+    Theme.of(context);
 
     return Scaffold(
       backgroundColor:
       theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-
-          icon: const Icon(
-            Icons.arrow_back,
-          ),
-        ),
-
         title: const Text(
           "High Priority Tasks",
           style: TextStyle(
@@ -170,34 +84,27 @@ class _HighPriorityScreenState
             ? Center(
           child: Text(
             "No high priority tasks",
-            style:
-            theme.textTheme.bodySmall,
+            style: theme
+                .textTheme
+                .bodySmall,
           ),
         )
             : ListView.builder(
           padding:
-          const EdgeInsets.all(13),
+          const EdgeInsets
+              .all(13),
 
           itemCount:
           tasks.length,
 
           itemBuilder:
               (context, index) {
+            return TaskItemWidget(
+              task:
+              tasks[index],
 
-            final task =
-            tasks[index];
-
-            return TaskListWidget(
-              task: task,
-
-              onChanged: (value) {
-                if (value != null) {
-                  updateTask(
-                    task,
-                    value,
-                  );
-                }
-              },
+              onTaskUpdated:
+              _loadTasks,
             );
           },
         ),

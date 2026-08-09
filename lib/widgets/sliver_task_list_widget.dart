@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../models/task_model.dart';
-import 'task_list_widget.dart';
+import 'task_item_widget.dart';
 
 // =========================================================
 // Sliver Task List Widget
 // =========================================================
 
+// هذا الـ Widget بعرض التاسكات داخل CustomScrollView
+// باستخدام SliverList.
 class SliverTaskListWidget
     extends StatelessWidget {
-
   final List<TaskModel> tasks;
 
   final Function(int index, bool value)
   onTaskChanged;
 
+  final VoidCallback? onTaskUpdated;
+
   const SliverTaskListWidget({
     super.key,
     required this.tasks,
     required this.onTaskChanged,
+    this.onTaskUpdated,
   });
 
   @override
   Widget build(BuildContext context) {
-
     // إذا ما في Tasks
     if (tasks.isEmpty) {
       return SliverToBoxAdapter(
@@ -32,11 +35,9 @@ class SliverTaskListWidget
           const EdgeInsets.symmetric(
             vertical: 30,
           ),
-
           child: Center(
             child: Text(
               "No tasks yet",
-
               style:
               Theme.of(context)
                   .textTheme
@@ -52,7 +53,6 @@ class SliverTaskListWidget
       delegate:
       SliverChildBuilderDelegate(
             (context, index) {
-
           final task =
           tasks[index];
 
@@ -62,17 +62,11 @@ class SliverTaskListWidget
               horizontal: 15,
             ),
 
-            child: TaskListWidget(
+            child: TaskItemWidget(
               task: task,
 
-              onChanged: (value) {
-                if (value != null) {
-                  onTaskChanged(
-                    index,
-                    value,
-                  );
-                }
-              },
+              onTaskUpdated:
+              onTaskUpdated,
             ),
           );
         },

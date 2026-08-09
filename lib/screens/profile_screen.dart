@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/services/preferences_manager.dart';
+import '../core/theme/theme_controller.dart';
 import 'user_details_screen.dart';
 import 'welcome_screen.dart';
 
@@ -8,34 +9,191 @@ import 'welcome_screen.dart';
 // Profile Screen
 // =========================================================
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen
+    extends StatefulWidget {
+  const ProfileScreen({
+    super.key,
+  });
 
   @override
-  State<ProfileScreen> createState() =>
+  State<ProfileScreen>
+  createState() =>
       _ProfileScreenState();
 }
 
+// =========================================================
+// Logic
+// =========================================================
+
 class _ProfileScreenState
     extends State<ProfileScreen> {
+  // =======================================================
+  // Show Theme Sheet
+  // =======================================================
 
-  // =========================================================
+  Future<void>
+  _showThemeSheet() async {
+    final currentTheme =
+        ThemeController
+            .instance
+            .themeMode;
+
+    await showModalBottomSheet<void>(
+      context: context,
+
+      backgroundColor:
+      Theme.of(context)
+          .scaffoldBackgroundColor,
+
+      shape:
+      const RoundedRectangleBorder(
+        borderRadius:
+        BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+
+      builder: (context) {
+        final theme =
+        Theme.of(context);
+
+        return SafeArea(
+          child: Padding(
+            padding:
+            const EdgeInsets.all(
+              16,
+            ),
+
+            child: Column(
+              mainAxisSize:
+              MainAxisSize.min,
+
+              crossAxisAlignment:
+              CrossAxisAlignment
+                  .start,
+
+              children: [
+                Text(
+                  "Choose Theme",
+                  style: theme
+                      .textTheme
+                      .titleLarge,
+                ),
+
+                const SizedBox(
+                  height: 16,
+                ),
+
+                // Light
+                RadioListTile<ThemeMode>(
+                  value:
+                  ThemeMode.light,
+
+                  groupValue:
+                  currentTheme,
+
+                  title:
+                  const Text(
+                    "Light",
+                  ),
+
+                  secondary:
+                  const Icon(
+                    Icons
+                        .light_mode_outlined,
+                  ),
+
+                  onChanged:
+                      (value) async {
+                    if (value ==
+                        null) {
+                      return;
+                    }
+
+                    await ThemeController
+                        .instance
+                        .setTheme(
+                      value,
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    Navigator.pop(
+                      context,
+                    );
+                  },
+                ),
+
+                // Dark
+                RadioListTile<ThemeMode>(
+                  value:
+                  ThemeMode.dark,
+
+                  groupValue:
+                  currentTheme,
+
+                  title:
+                  const Text(
+                    "Dark",
+                  ),
+
+                  secondary:
+                  const Icon(
+                    Icons
+                        .dark_mode_outlined,
+                  ),
+
+                  onChanged:
+                      (value) async {
+                    if (value ==
+                        null) {
+                      return;
+                    }
+
+                    await ThemeController
+                        .instance
+                        .setTheme(
+                      value,
+                    );
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    Navigator.pop(
+                      context,
+                    );
+                  },
+                ),
+
+                const SizedBox(
+                  height: 8,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // =======================================================
   // Build
-  // =========================================================
+  // =======================================================
 
   @override
   Widget build(BuildContext context) {
-
-    final theme = Theme.of(context);
+    final theme =
+    Theme.of(context);
 
     final userName =
-        PreferencesManager.instance.username;
-
-    final isDarkMode =
-        PreferencesManager.instance.isDarkMode;
+        PreferencesManager
+            .instance
+            .username;
 
     return Scaffold(
-
       backgroundColor:
       theme.scaffoldBackgroundColor,
 
@@ -46,20 +204,23 @@ class _ProfileScreenState
       ),
 
       body: SafeArea(
-        child: SingleChildScrollView(
-
+        child:
+        SingleChildScrollView(
           padding:
-          const EdgeInsets.symmetric(
+          const EdgeInsets
+              .symmetric(
             horizontal: 14,
           ),
 
           child: Column(
             crossAxisAlignment:
-            CrossAxisAlignment.start,
+            CrossAxisAlignment
+                .start,
 
             children: [
-
-              const SizedBox(height: 20),
+              const SizedBox(
+                height: 20,
+              ),
 
               // =================================================
               // Profile Image
@@ -68,20 +229,23 @@ class _ProfileScreenState
               Center(
                 child: Stack(
                   children: [
-
                     Container(
                       width: 90,
                       height: 90,
 
                       decoration:
                       const BoxDecoration(
-                        shape: BoxShape.circle,
+                        shape:
+                        BoxShape.circle,
                       ),
 
-                      child: ClipOval(
-                        child: Image.asset(
+                      child:
+                      ClipOval(
+                        child:
+                        Image.asset(
                           "assets/images/profile.png",
-                          fit: BoxFit.cover,
+                          fit:
+                          BoxFit.cover,
                         ),
                       ),
                     ),
@@ -90,24 +254,28 @@ class _ProfileScreenState
                       right: 0,
                       bottom: 0,
 
-                      child: Container(
+                      child:
+                      Container(
                         width: 32,
                         height: 32,
 
                         decoration:
                         BoxDecoration(
                           color:
-                          theme.cardColor,
+                          theme
+                              .cardColor,
+
                           shape:
-                          BoxShape.circle,
+                          BoxShape
+                              .circle,
                         ),
 
-                        child: Icon(
+                        child:
+                        Icon(
                           Icons
                               .camera_alt_outlined,
 
-                          color:
-                          theme
+                          color: theme
                               .iconTheme
                               .color,
 
@@ -119,7 +287,9 @@ class _ProfileScreenState
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(
+                height: 8,
+              ),
 
               // =================================================
               // User Name
@@ -129,27 +299,29 @@ class _ProfileScreenState
                 child: Text(
                   userName,
 
-                  style:
-                  theme
+                  style: theme
                       .textTheme
                       .titleLarge,
                 ),
               ),
 
-              const SizedBox(height: 3),
+              const SizedBox(
+                height: 3,
+              ),
 
               Center(
                 child: Text(
                   "One task at a time. One step closer.",
 
-                  style:
-                  theme
+                  style: theme
                       .textTheme
                       .bodySmall,
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(
+                height: 24,
+              ),
 
               // =================================================
               // Profile Info
@@ -158,13 +330,14 @@ class _ProfileScreenState
               Text(
                 "Profile Info",
 
-                style:
-                theme
+                style: theme
                     .textTheme
                     .titleMedium,
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(
+                height: 8,
+              ),
 
               // =================================================
               // User Details
@@ -175,20 +348,23 @@ class _ProfileScreenState
                 EdgeInsets.zero,
 
                 leading: const Icon(
-                  Icons.person_outline,
+                  Icons
+                      .person_outline,
                 ),
 
-                title: const Text(
+                title:
+                const Text(
                   "User Details",
                 ),
 
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
+                trailing:
+                const Icon(
+                  Icons
+                      .arrow_forward_ios,
                   size: 18,
                 ),
 
                 onTap: () async {
-
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -197,8 +373,6 @@ class _ProfileScreenState
                     ),
                   );
 
-                  // بعد الرجوع
-                  // بنعيد بناء الصفحة عشان الاسم يتحدث
                   if (mounted) {
                     setState(() {});
                   }
@@ -208,43 +382,44 @@ class _ProfileScreenState
               const Divider(),
 
               // =================================================
-              // Dark Mode
+              // Theme
               // =================================================
 
               ListTile(
                 contentPadding:
                 EdgeInsets.zero,
 
-                leading: const Icon(
-                  Icons.nightlight_outlined,
+                leading: Icon(
+                  ThemeController
+                      .instance
+                      .isDarkMode
+                      ? Icons
+                      .dark_mode_outlined
+                      : Icons
+                      .light_mode_outlined,
                 ),
 
                 title: const Text(
-                  "Dark Mode",
+                  "Theme",
                 ),
 
-                trailing: Switch(
-                  value: isDarkMode,
-
-                  onChanged: (value) async {
-
-                    await PreferencesManager
-                        .instance
-                        .saveDarkMode(value);
-
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  },
-
-                  activeColor:
-                  Colors.white,
-
-                  activeTrackColor:
-                  const Color(
-                    0xFF20C477,
-                  ),
+                subtitle: Text(
+                  ThemeController
+                      .instance
+                      .isDarkMode
+                      ? "Dark"
+                      : "Light",
                 ),
+
+                trailing:
+                const Icon(
+                  Icons
+                      .arrow_forward_ios,
+                  size: 18,
+                ),
+
+                onTap:
+                _showThemeSheet,
               ),
 
               const Divider(),
@@ -261,27 +436,29 @@ class _ProfileScreenState
                   Icons.logout,
                 ),
 
-                title: const Text(
+                title:
+                const Text(
                   "Log Out",
                 ),
 
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
+                trailing:
+                const Icon(
+                  Icons
+                      .arrow_forward_ios,
                   size: 18,
                 ),
 
                 onTap: () async {
-
-                  // نمسح اسم المستخدم
                   await PreferencesManager
                       .instance
                       .logout();
 
-                  if (!mounted) return;
+                  if (!mounted) {
+                    return;
+                  }
 
-                  // نرجع على Welcome
-                  // ونحذف كل الصفحات السابقة
-                  Navigator.pushAndRemoveUntil(
+                  Navigator
+                      .pushAndRemoveUntil(
                     context,
 
                     MaterialPageRoute(
@@ -294,7 +471,9 @@ class _ProfileScreenState
                 },
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(
+                height: 30,
+              ),
             ],
           ),
         ),
