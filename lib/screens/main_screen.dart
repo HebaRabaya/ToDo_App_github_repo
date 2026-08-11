@@ -1,102 +1,70 @@
-import 'package:flutter/material.dart';
-
-import 'complete_tasks_screen.dart';
-import 'home_screen.dart';
-import 'profile_screen.dart';
-import 'tasks_screen.dart';
-
 // =========================================================
 // Main Screen
 // =========================================================
-
-// هاي الشاشة مسؤولة عن التنقل بين الصفحات الرئيسية.
 //
-// 0 = Home
-// 1 = To Do
-// 2 = Completed
-// 3 = Profile
+// هاي الشاشة هي الـ Container الرئيسي للتطبيق.
+//
+// فيها Bottom Navigation بين:
+// - Home
+// - Tasks
+// - Completed
+// - Profile
+//
+// =========================================================
+
+import 'package:flutter/material.dart';
+
+import 'home_screen.dart';
+import 'tasks_screen.dart';
+import 'complete_tasks_screen.dart';
+import 'profile_screen.dart';
+
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({
+    super.key,
+  });
 
   @override
   State<MainScreen> createState() =>
       _MainScreenState();
 }
 
-// =========================================================
-// Main Screen Logic
-// =========================================================
-
 class _MainScreenState
     extends State<MainScreen> {
-  // الصفحة الحالية
-  int currentIndex = 0;
+  int _currentIndex = 0;
 
-  // =======================================================
-  // Pages
-  // =======================================================
+  late final List<Widget> _screens;
 
-  final List<Widget> pages = const [
-    HomeScreen(),
-    TasksScreen(),
-    CompleteTasksScreen(),
-    ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
 
-  // =======================================================
-  // Change Page
-  // =======================================================
-
-  void changePage(
-      int index,
-      ) {
-    setState(() {
-      currentIndex = index;
-    });
+    _screens = const [
+      HomeScreen(),
+      TasksScreen(),
+      CompleteTasksScreen(),
+      ProfileScreen(),
+    ];
   }
-
-  // =======================================================
-  // Build
-  // =======================================================
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
-
     return Scaffold(
-      backgroundColor:
-      theme.scaffoldBackgroundColor,
-
-      // =====================================================
-      // Current Page
-      // =====================================================
-
       body: IndexedStack(
-        index: currentIndex,
-        children: pages,
+        index: _currentIndex,
+        children: _screens,
       ),
-
-      // =====================================================
-      // Bottom Navigation
-      // =====================================================
 
       bottomNavigationBar:
       NavigationBar(
-        selectedIndex:
-        currentIndex,
+        selectedIndex: _currentIndex,
 
         onDestinationSelected:
-        changePage,
-
-        backgroundColor:
-        theme.cardColor,
-
-        indicatorColor:
-        theme.colorScheme.primary
-            .withValues(
-          alpha: 0.15,
-        ),
+            (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
 
         destinations: const [
           NavigationDestination(
@@ -110,31 +78,30 @@ class _MainScreenState
 
           NavigationDestination(
             icon: Icon(
-              Icons
-                  .checklist_outlined,
+              Icons.task_outlined,
             ),
             selectedIcon:
-            Icon(Icons.checklist),
-            label: "To Do",
+            Icon(Icons.task),
+            label: "Tasks",
           ),
 
           NavigationDestination(
             icon: Icon(
-              Icons
-                  .task_alt_outlined,
+              Icons.check_circle_outline,
             ),
-            selectedIcon:
-            Icon(Icons.task_alt),
-            label: "Done",
+            selectedIcon: Icon(
+              Icons.check_circle,
+            ),
+            label: "Completed",
           ),
 
           NavigationDestination(
             icon: Icon(
-              Icons
-                  .person_outline,
+              Icons.person_outline,
             ),
-            selectedIcon:
-            Icon(Icons.person),
+            selectedIcon: Icon(
+              Icons.person,
+            ),
             label: "Profile",
           ),
         ],

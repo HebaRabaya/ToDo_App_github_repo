@@ -5,11 +5,18 @@ import '../services/preferences_manager.dart';
 // =========================================================
 // Theme Controller
 // =========================================================
-
-// هذا الـ Controller مسؤول عن تغيير الثيم.
 //
-// بدل ما نغير الثيم من كل مكان بالتطبيق
-// بنخلي المسؤولية هون.
+// هذا الـ Controller مسؤول عن التحكم بالـ Theme.
+//
+// PreferencesManager:
+// يخزن قيمة Dark Mode.
+//
+// ThemeController:
+// يحول القيمة إلى ThemeMode
+// ويغير الـ Theme بالتطبيق.
+//
+// =========================================================
+
 class ThemeController extends ChangeNotifier {
   ThemeController._();
 
@@ -42,11 +49,11 @@ class ThemeController extends ChangeNotifier {
   Future<void> setTheme(
       ThemeMode mode,
       ) async {
-    final isDark =
-        mode == ThemeMode.dark;
+    final isDark = mode == ThemeMode.dark;
 
-    await PreferencesManager.instance
-        .saveDarkMode(isDark);
+    await PreferencesManager.instance.saveDarkMode(
+      isDark,
+    );
 
     notifyListeners();
   }

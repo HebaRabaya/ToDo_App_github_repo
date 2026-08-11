@@ -1,84 +1,42 @@
+// =========================================================
+// To Do Screen
+// =========================================================
+//
+// هاي الشاشة بتعرض التاسكات اللي لسا ما خلصت.
+//
+// يعني:
+// isCompleted == false
+//
+// إذا المستخدم عمل Task كـ Done:
+// بتختفي من هون وتظهر في Completed.
+//
+// =========================================================
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/services/preferences_manager.dart';
 import '../widgets/task_item_widget.dart';
+import 'add_task_screen.dart';
 
-// =========================================================
-// To Do Tasks Screen
-// =========================================================
-
-// هاي الشاشة بتعرض التاسكات اللي لسا ما خلصناها.
-//
-// الصفحة بتسمع لأي تغيير بصير داخل PreferencesManager.
-// يعني لما نضيف أو نعدل أو نحذف Task، القائمة بتتحدث
-// لحالها بدون ما نحتاج نرجع نفتح الصفحة.
-class TasksScreen extends StatefulWidget {
-  const TasksScreen({super.key});
-
-  @override
-  State<TasksScreen> createState() =>
-      _TasksScreenState();
-}
-
-// =========================================================
-// Logic
-// =========================================================
-
-class _TasksScreenState extends State<TasksScreen> {
-  // التاسكات غير المكتملة.
-  List tasks = [];
+class TasksScreen extends StatelessWidget {
+  const TasksScreen({
+    super.key,
+  });
 
   // =======================================================
-  // Init
+  // Add Task
   // =======================================================
 
-  @override
-  void initState() {
-    super.initState();
-
-    // أول ما الصفحة تشتغل بنجيب التاسكات.
-    _loadTasks();
-
-    // بنخلي الصفحة تسمع لأي تغيير بصير على البيانات.
-    PreferencesManager.instance.addListener(
-      _loadTasks,
+  Future<void> _addTask(
+      BuildContext context,
+      ) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddTaskScreen(),
+      ),
     );
-  }
-
-  // =======================================================
-  // Dispose
-  // =======================================================
-
-  @override
-  void dispose() {
-    // مهم نشيل الـ Listener لما الصفحة تنتهي.
-    // عشان ما يضل مربوط بالصفحة ويسبب مشاكل بالذاكرة.
-    PreferencesManager.instance.removeListener(
-      _loadTasks,
-    );
-
-    super.dispose();
-  }
-
-  // =======================================================
-  // Load Tasks
-  // =======================================================
-
-  void _loadTasks() {
-    final allTasks =
-        PreferencesManager.instance.tasks;
-
-    final todoTasks = allTasks
-        .where(
-          (task) => !task.isCompleted,
-    )
-        .toList();
-
-    if (!mounted) return;
-
-    setState(() {
-      tasks = todoTasks;
-    });
   }
 
   // =======================================================
@@ -87,58 +45,142 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor:
-      theme.scaffoldBackgroundColor,
-
-      // ===================================================
-      // App Bar
-      // ===================================================
-
-      appBar: AppBar(
-        title: const Text(
-          "To Do Tasks",
-          style: TextStyle(
-            fontSize: 17,
-          ),
-        ),
-      ),
-
-      // ===================================================
-      // Body
-      // ===================================================
-
-      body: SafeArea(
-        child: tasks.isEmpty
-            ? Center(
-          child: Text(
-            "No tasks to do",
-            style:
-            theme.textTheme.bodySmall,
-          ),
+    return Consumer<PreferencesManager>(
+      builder: (
+          context,
+          manager,
+          child,
+          ) {
+        // =================================================
+        // To Do Tasks
+        // =================================================
+        //
+        // بنعرض فقط التاسكات غير المكتملة.
+        //
+        final tasks = manager.tasks
+            .where(
+              (task) => !task.isCompleted,
         )
-            : ListView.builder(
-          padding:
-          const EdgeInsets.all(13),
+            .toList();
 
-          itemCount:
-          tasks.length,
+        final theme = Theme.of(context);
 
-          itemBuilder:
-              (context, index) {
-            return TaskItemWidget(
-              task: tasks[index],
+        return Scaffold(
+          backgroundColor:
+          theme.scaffoldBackgroundColor,
 
-              // لما التاسك تتعدل
-              // بنعيد قراءة القائمة.
-              onTaskUpdated:
-              _loadTasks,
-            );
-          },
-        ),
-      ),
+          // =================================================
+          // App Bar
+          // =================================================
+
+          appBar: AppBar(
+            title: const Text(
+              "To Do",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // =================================================
+          // Add Task
+          // =================================================
+
+          floatingActionButton:
+          FloatingActionButton.extended(
+            onPressed: () => _addTask(context),
+
+            backgroundColor:
+            const Color(0xFF52C070),
+
+            icon: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+
+            label: const Text(
+              "Add Task",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // =================================================
+          // Body
+          // =================================================
+
+          body: tasks.isEmpty
+              ? Center(
+            child: Padding(
+              padding:
+              const EdgeInsets.all(30),
+              child: Column(
+                mainAxisSize:
+                MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons
+                        .check_circle_outline,
+                    size: 55,
+                    color:
+                    theme.colorScheme
+                        .primary,
+                  ),
+
+                  const SizedBox(
+                    height: 12,
+                  ),
+
+                  Text(
+                    "You're all caught up!",
+                    style: theme
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(
+                      fontWeight:
+                      FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(
+                    height: 5,
+                  ),
+
+                  Text(
+                    "No tasks to do right now.",
+                    textAlign:
+                    TextAlign.center,
+                    style: theme
+                        .textTheme
+                        .bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          )
+              : ListView.builder(
+            padding:
+            const EdgeInsets.fromLTRB(
+              15,
+              12,
+              15,
+              100,
+            ),
+
+            itemCount:
+            tasks.length,
+
+            itemBuilder:
+                (context, index) {
+              return TaskItemWidget(
+                task: tasks[index],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -1,30 +1,46 @@
+// =========================================================
+// Add Task Screen
+// =========================================================
+//
+// هاي الشاشة مسؤولة عن إضافة Task جديدة.
+//
+// المستخدم بقدر يدخل:
+// - اسم التاسك
+// - الوصف
+// - High Priority
+// - Due Date
+// - صورة
+//
+// وبعد الضغط على Add Task بنستخدم:
+// context.read<PreferencesManager>()
+//
+// لأننا بدنا ننفذ عملية إضافة فقط،
+// ومش محتاجين نعيد بناء الـ UI بسبب التغيير.
+//
+// =========================================================
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../core/services/preferences_manager.dart';
 import '../models/task_model.dart';
 
-// =========================================================
-// Add Task Screen
-// =========================================================
-
-class AddTaskScreen extends StatefulWidget {
-  const AddTaskScreen({super.key});
+class AddTaskScreen
+    extends StatefulWidget {
+  const AddTaskScreen({
+    super.key,
+  });
 
   @override
   State<AddTaskScreen> createState() =>
       _AddTaskScreenState();
 }
 
-// =========================================================
-// Logic
-// =========================================================
-
 class _AddTaskScreenState
     extends State<AddTaskScreen> {
-  // Controllers
   final TextEditingController
   _titleController =
   TextEditingController();
@@ -33,21 +49,14 @@ class _AddTaskScreenState
   _descriptionController =
   TextEditingController();
 
-  // High Priority
   bool _isHighPriority = true;
 
-  // Date
   String? _selectedDate;
 
-  // Image
   String? _imagePath;
 
   final ImagePicker _imagePicker =
   ImagePicker();
-
-  // =======================================================
-  // Dispose
-  // =======================================================
 
   @override
   void dispose() {
@@ -62,10 +71,8 @@ class _AddTaskScreenState
   // =======================================================
 
   Future<void> _pickDate() async {
-    final theme =
-    Theme.of(context);
-
-    final now = DateTime.now();
+    final now =
+    DateTime.now();
 
     final pickedDate =
     await showDatePicker(
@@ -78,14 +85,6 @@ class _AddTaskScreenState
       lastDate: DateTime(
         now.year + 10,
       ),
-
-      builder:
-          (context, child) {
-        return Theme(
-          data: theme,
-          child: child!,
-        );
-      },
     );
 
     if (pickedDate == null) {
@@ -107,7 +106,8 @@ class _AddTaskScreenState
   Future<void> _pickImage() async {
     final image =
     await _imagePicker.pickImage(
-      source: ImageSource.gallery,
+      source:
+      ImageSource.gallery,
       imageQuality: 80,
     );
 
@@ -116,7 +116,8 @@ class _AddTaskScreenState
     }
 
     setState(() {
-      _imagePath = image.path;
+      _imagePath =
+          image.path;
     });
   }
 
@@ -138,7 +139,6 @@ class _AddTaskScreenState
     final taskName =
     _titleController.text.trim();
 
-    // التأكد من وجود اسم
     if (taskName.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(
@@ -152,28 +152,39 @@ class _AddTaskScreenState
       return;
     }
 
-    // إنشاء ID جديد
     final taskId =
     DateTime.now()
         .microsecondsSinceEpoch
         .toString();
 
-    // إنشاء التاسك
     final task = TaskModel(
       taskId: taskId,
+
       taskName: taskName,
+
       taskDescription:
-      _descriptionController.text
+      _descriptionController
+          .text
           .trim(),
+
       isHighPriority:
       _isHighPriority,
+
       isCompleted: false,
-      dueDate: _selectedDate,
-      imagePath: _imagePath,
+
+      dueDate:
+      _selectedDate,
+
+      imagePath:
+      _imagePath,
     );
 
-    // حفظ التاسك
-    await PreferencesManager.instance
+    // =====================================================
+    // Provider + context.read
+    // =====================================================
+
+    await context
+        .read<PreferencesManager>()
         .addTask(task);
 
     if (!mounted) return;
@@ -187,13 +198,8 @@ class _AddTaskScreenState
       ),
     );
 
-    // الرجوع
     Navigator.pop(context);
   }
-
-  // =======================================================
-  // Build
-  // =======================================================
 
   @override
   Widget build(BuildContext context) {
@@ -227,17 +233,12 @@ class _AddTaskScreenState
 
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start,
+                  CrossAxisAlignment.start,
 
                   children: [
                     const SizedBox(
                       height: 8,
                     ),
-
-                    // =================================================
-                    // Task Name
-                    // =================================================
 
                     Text(
                       "Task Name",
@@ -254,10 +255,6 @@ class _AddTaskScreenState
                       controller:
                       _titleController,
 
-                      style: theme
-                          .textTheme
-                          .bodyMedium,
-
                       decoration:
                       const InputDecoration(
                         hintText:
@@ -268,10 +265,6 @@ class _AddTaskScreenState
                     const SizedBox(
                       height: 16,
                     ),
-
-                    // =================================================
-                    // Description
-                    // =================================================
 
                     Text(
                       "Task Description",
@@ -290,10 +283,6 @@ class _AddTaskScreenState
 
                       maxLines: 5,
 
-                      style: theme
-                          .textTheme
-                          .bodyMedium,
-
                       decoration:
                       const InputDecoration(
                         hintText:
@@ -304,10 +293,6 @@ class _AddTaskScreenState
                     const SizedBox(
                       height: 16,
                     ),
-
-                    // =================================================
-                    // High Priority
-                    // =================================================
 
                     SwitchListTile(
                       contentPadding:
@@ -320,7 +305,8 @@ class _AddTaskScreenState
                       value:
                       _isHighPriority,
 
-                      onChanged: (value) {
+                      onChanged:
+                          (value) {
                         setState(() {
                           _isHighPriority =
                               value;
@@ -330,20 +316,18 @@ class _AddTaskScreenState
 
                     const Divider(),
 
-                    // =================================================
-                    // Date
-                    // =================================================
-
                     ListTile(
                       contentPadding:
                       EdgeInsets.zero,
 
-                      leading: const Icon(
+                      leading:
+                      const Icon(
                         Icons
                             .calendar_today_outlined,
                       ),
 
-                      title: const Text(
+                      title:
+                      const Text(
                         "Due Date",
                       ),
 
@@ -368,8 +352,7 @@ class _AddTaskScreenState
                           : IconButton(
                         icon:
                         const Icon(
-                          Icons
-                              .close,
+                          Icons.close,
                         ),
                         onPressed:
                             () {
@@ -388,25 +371,24 @@ class _AddTaskScreenState
 
                     const Divider(),
 
-                    // =================================================
-                    // Image
-                    // =================================================
-
                     ListTile(
                       contentPadding:
                       EdgeInsets.zero,
 
-                      leading: const Icon(
+                      leading:
+                      const Icon(
                         Icons
                             .image_outlined,
                       ),
 
-                      title: const Text(
+                      title:
+                      const Text(
                         "Task Image",
                       ),
 
                       subtitle:
-                      _imagePath == null
+                      _imagePath ==
+                          null
                           ? const Text(
                         "Choose an image",
                       )
@@ -415,7 +397,8 @@ class _AddTaskScreenState
                       ),
 
                       trailing:
-                      _imagePath == null
+                      _imagePath ==
+                          null
                           ? const Icon(
                         Icons
                             .arrow_forward_ios,
@@ -445,19 +428,26 @@ class _AddTaskScreenState
                             .only(
                           top: 8,
                         ),
-                        child: ClipRRect(
+
+                        child:
+                        ClipRRect(
                           borderRadius:
                           BorderRadius
                               .circular(
                             12,
                           ),
-                          child: Image.file(
+
+                          child:
+                          Image.file(
                             File(
                               _imagePath!,
                             ),
+
                             width:
                             double.infinity,
+
                             height: 150,
+
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -470,10 +460,6 @@ class _AddTaskScreenState
                 ),
               ),
             ),
-
-            // =================================================
-            // Add Button
-            // =================================================
 
             Container(
               width:
@@ -499,7 +485,8 @@ class _AddTaskScreenState
                   onPressed:
                   _addTask,
 
-                  child: const Row(
+                  child:
+                  const Row(
                     mainAxisAlignment:
                     MainAxisAlignment
                         .center,

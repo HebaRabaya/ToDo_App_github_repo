@@ -1,181 +1,131 @@
+// =========================================================
+// Profile Screen
+// =========================================================
+//
+// هاي الشاشة مسؤولة عن إعدادات المستخدم.
+//
+// بتعرض:
+// - معلومات المستخدم
+// - User Details
+// - Dark Mode
+// - Logout
+//
+// Provider مسؤول عن جلب البيانات
+// وتحديث الشاشة عند تغييرها.
+//
+// =========================================================
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/services/preferences_manager.dart';
 import '../core/theme/theme_controller.dart';
 import 'user_details_screen.dart';
 import 'welcome_screen.dart';
 
-// =========================================================
-// Profile Screen
-// =========================================================
-
-class ProfileScreen
-    extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     super.key,
   });
 
-  @override
-  State<ProfileScreen>
-  createState() =>
-      _ProfileScreenState();
-}
-
-// =========================================================
-// Logic
-// =========================================================
-
-class _ProfileScreenState
-    extends State<ProfileScreen> {
   // =======================================================
-  // Show Theme Sheet
+  // Open User Details
   // =======================================================
 
-  Future<void>
-  _showThemeSheet() async {
-    final currentTheme =
-        ThemeController
-            .instance
-            .themeMode;
-
-    await showModalBottomSheet<void>(
-      context: context,
-
-      backgroundColor:
-      Theme.of(context)
-          .scaffoldBackgroundColor,
-
-      shape:
-      const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+  Future<void> _openUserDetails(
+      BuildContext context,
+      ) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+        const UserDetailsScreen(),
       ),
+    );
+  }
 
-      builder: (context) {
+  // =======================================================
+  // Logout
+  // =======================================================
+
+  Future<void> _logout(
+      BuildContext context,
+      ) async {
+    final shouldLogout =
+    await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
         final theme =
-        Theme.of(context);
+        Theme.of(dialogContext);
 
-        return SafeArea(
-          child: Padding(
-            padding:
-            const EdgeInsets.all(
-              16,
-            ),
+        return AlertDialog(
+          backgroundColor:
+          theme.cardColor,
 
-            child: Column(
-              mainAxisSize:
-              MainAxisSize.min,
-
-              crossAxisAlignment:
-              CrossAxisAlignment
-                  .start,
-
-              children: [
-                Text(
-                  "Choose Theme",
-                  style: theme
-                      .textTheme
-                      .titleLarge,
-                ),
-
-                const SizedBox(
-                  height: 16,
-                ),
-
-                // Light
-                RadioListTile<ThemeMode>(
-                  value:
-                  ThemeMode.light,
-
-                  groupValue:
-                  currentTheme,
-
-                  title:
-                  const Text(
-                    "Light",
-                  ),
-
-                  secondary:
-                  const Icon(
-                    Icons
-                        .light_mode_outlined,
-                  ),
-
-                  onChanged:
-                      (value) async {
-                    if (value ==
-                        null) {
-                      return;
-                    }
-
-                    await ThemeController
-                        .instance
-                        .setTheme(
-                      value,
-                    );
-
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    Navigator.pop(
-                      context,
-                    );
-                  },
-                ),
-
-                // Dark
-                RadioListTile<ThemeMode>(
-                  value:
-                  ThemeMode.dark,
-
-                  groupValue:
-                  currentTheme,
-
-                  title:
-                  const Text(
-                    "Dark",
-                  ),
-
-                  secondary:
-                  const Icon(
-                    Icons
-                        .dark_mode_outlined,
-                  ),
-
-                  onChanged:
-                      (value) async {
-                    if (value ==
-                        null) {
-                      return;
-                    }
-
-                    await ThemeController
-                        .instance
-                        .setTheme(
-                      value,
-                    );
-
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    Navigator.pop(
-                      context,
-                    );
-                  },
-                ),
-
-                const SizedBox(
-                  height: 8,
-                ),
-              ],
+          shape:
+          RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(
+              18,
             ),
           ),
+
+          title: const Text(
+            "Logout?",
+          ),
+
+          content: const Text(
+            "Are you sure you want to logout?",
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  dialogContext,
+                  false,
+                );
+              },
+              child: const Text(
+                "Cancel",
+              ),
+            ),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(
+                  dialogContext,
+                  true,
+                );
+              },
+              child: const Text(
+                "Logout",
+              ),
+            ),
+          ],
         );
       },
+    );
+
+    if (shouldLogout != true) {
+      return;
+    }
+
+    await context
+        .read<PreferencesManager>()
+        .logout();
+
+    if (!context.mounted) return;
+
+    // بنرجع لشاشة Welcome
+    // وبنمسح الشاشات القديمة من الـ navigation stack.
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+        const WelcomeScreen(),
+      ),
+          (route) => false,
     );
   }
 
@@ -184,63 +134,122 @@ class _ProfileScreenState
   // =======================================================
 
   @override
-  Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
+  Widget build(
+      BuildContext context,
+      ) {
+    return Consumer2<
+        PreferencesManager,
+        ThemeController>(
+      builder: (
+          context,
+          manager,
+          themeController,
+          child,
+          ) {
+        final theme =
+        Theme.of(context);
 
-    final userName =
-        PreferencesManager
-            .instance
-            .username;
+        final isDark =
+            themeController.themeMode ==
+                ThemeMode.dark;
 
-    return Scaffold(
-      backgroundColor:
-      theme.scaffoldBackgroundColor,
+        final displayName =
+        manager.username.isEmpty
+            ? "User"
+            : manager.username;
 
-      appBar: AppBar(
-        title: const Text(
-          "My Profile",
-        ),
-      ),
+        return Scaffold(
+          backgroundColor:
+          theme.scaffoldBackgroundColor,
 
-      body: SafeArea(
-        child:
-        SingleChildScrollView(
-          padding:
-          const EdgeInsets
-              .symmetric(
-            horizontal: 14,
+          // =================================================
+          // App Bar
+          // =================================================
+
+          appBar: AppBar(
+            title: const Text(
+              "Profile",
+              style: TextStyle(
+                fontWeight:
+                FontWeight.w600,
+              ),
+            ),
           ),
 
-          child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment
-                .start,
+          // =================================================
+          // Body
+          // =================================================
+
+          body: ListView(
+            padding:
+            const EdgeInsets.all(
+              15,
+            ),
 
             children: [
-              const SizedBox(
-                height: 20,
-              ),
-
               // =================================================
-              // Profile Image
+              // User Information Card
               // =================================================
 
-              Center(
-                child: Stack(
+              Container(
+                padding:
+                const EdgeInsets.all(
+                  17,
+                ),
+
+                decoration:
+                BoxDecoration(
+                  color:
+                  theme.cardColor,
+
+                  borderRadius:
+                  BorderRadius.circular(
+                    18,
+                  ),
+
+                  border:
+                  Border.all(
+                    color: theme
+                        .dividerColor
+                        .withValues(
+                      alpha: 0.15,
+                    ),
+                  ),
+                ),
+
+                child: Row(
                   children: [
+                    // Profile Image
                     Container(
-                      width: 90,
-                      height: 90,
+                      width: 60,
+                      height: 60,
 
                       decoration:
-                      const BoxDecoration(
-                        shape:
-                        BoxShape.circle,
+                      BoxDecoration(
+                        borderRadius:
+                        BorderRadius
+                            .circular(
+                          14,
+                        ),
+
+                        border:
+                        Border.all(
+                          color:
+                          const Color(
+                            0xFF9747FF,
+                          ),
+                          width: 2,
+                        ),
                       ),
 
                       child:
-                      ClipOval(
+                      ClipRRect(
+                        borderRadius:
+                        BorderRadius
+                            .circular(
+                          12,
+                        ),
+
                         child:
                         Image.asset(
                           "assets/images/profile.png",
@@ -250,37 +259,50 @@ class _ProfileScreenState
                       ),
                     ),
 
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
+                    const SizedBox(
+                      width: 13,
+                    ),
 
+                    // User Name
+                    Expanded(
                       child:
-                      Container(
-                        width: 32,
-                        height: 32,
+                      Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
 
-                        decoration:
-                        BoxDecoration(
-                          color:
-                          theme
-                              .cardColor,
+                        children: [
+                          Text(
+                            displayName,
 
-                          shape:
-                          BoxShape
-                              .circle,
-                        ),
+                            maxLines: 1,
 
-                        child:
-                        Icon(
-                          Icons
-                              .camera_alt_outlined,
+                            overflow:
+                            TextOverflow
+                                .ellipsis,
 
-                          color: theme
-                              .iconTheme
-                              .color,
+                            style: theme
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                              fontWeight:
+                              FontWeight
+                                  .w600,
+                            ),
+                          ),
 
-                          size: 18,
-                        ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+
+                          Text(
+                            "Tasky User",
+
+                            style: theme
+                                .textTheme
+                                .bodySmall,
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -288,68 +310,44 @@ class _ProfileScreenState
               ),
 
               const SizedBox(
-                height: 8,
+                height: 18,
               ),
 
               // =================================================
-              // User Name
-              // =================================================
-
-              Center(
-                child: Text(
-                  userName,
-
-                  style: theme
-                      .textTheme
-                      .titleLarge,
-                ),
-              ),
-
-              const SizedBox(
-                height: 3,
-              ),
-
-              Center(
-                child: Text(
-                  "One task at a time. One step closer.",
-
-                  style: theme
-                      .textTheme
-                      .bodySmall,
-                ),
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // =================================================
-              // Profile Info
+              // Account Section
               // =================================================
 
               Text(
-                "Profile Info",
-
+                "Account",
                 style: theme
                     .textTheme
-                    .titleMedium,
+                    .bodySmall
+                    ?.copyWith(
+                  fontWeight:
+                  FontWeight.w600,
+                ),
               ),
 
               const SizedBox(
                 height: 8,
               ),
 
-              // =================================================
               // User Details
-              // =================================================
-
               ListTile(
-                contentPadding:
-                EdgeInsets.zero,
+                tileColor:
+                theme.cardColor,
 
-                leading: const Icon(
-                  Icons
-                      .person_outline,
+                shape:
+                RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(
+                    14,
+                  ),
+                ),
+
+                leading:
+                const Icon(
+                  Icons.person_outline,
                 ),
 
                 title:
@@ -357,118 +355,143 @@ class _ProfileScreenState
                   "User Details",
                 ),
 
+                subtitle:
+                const Text(
+                  "Update your information",
+                ),
+
                 trailing:
                 const Icon(
                   Icons
                       .arrow_forward_ios,
-                  size: 18,
+                  size: 15,
                 ),
 
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                      const UserDetailsScreen(),
+                onTap: () =>
+                    _openUserDetails(
+                      context,
                     ),
-                  );
-
-                  if (mounted) {
-                    setState(() {});
-                  }
-                },
               ),
 
-              const Divider(),
+              const SizedBox(
+                height: 10,
+              ),
 
               // =================================================
-              // Theme
+              // Appearance Section
               // =================================================
 
-              ListTile(
-                contentPadding:
-                EdgeInsets.zero,
+              Text(
+                "Appearance",
+                style: theme
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(
+                  fontWeight:
+                  FontWeight.w600,
+                ),
+              ),
 
-                leading: Icon(
-                  ThemeController
-                      .instance
-                      .isDarkMode
-                      ? Icons
-                      .dark_mode_outlined
-                      : Icons
-                      .light_mode_outlined,
+              const SizedBox(
+                height: 8,
+              ),
+
+              SwitchListTile(
+                tileColor:
+                theme.cardColor,
+
+                shape:
+                RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(
+                    14,
+                  ),
                 ),
 
-                title: const Text(
-                  "Theme",
-                ),
-
-                subtitle: Text(
-                  ThemeController
-                      .instance
-                      .isDarkMode
-                      ? "Dark"
-                      : "Light",
-                ),
-
-                trailing:
+                secondary:
                 const Icon(
                   Icons
-                      .arrow_forward_ios,
-                  size: 18,
-                ),
-
-                onTap:
-                _showThemeSheet,
-              ),
-
-              const Divider(),
-
-              // =================================================
-              // Log Out
-              // =================================================
-
-              ListTile(
-                contentPadding:
-                EdgeInsets.zero,
-
-                leading: const Icon(
-                  Icons.logout,
+                      .dark_mode_outlined,
                 ),
 
                 title:
                 const Text(
-                  "Log Out",
+                  "Dark Mode",
                 ),
 
-                trailing:
-                const Icon(
-                  Icons
-                      .arrow_forward_ios,
-                  size: 18,
+                subtitle:
+                Text(
+                  isDark
+                      ? "Dark theme is enabled"
+                      : "Light theme is enabled",
                 ),
 
-                onTap: () async {
-                  await PreferencesManager
-                      .instance
-                      .logout();
+                value:
+                isDark,
 
-                  if (!mounted) {
-                    return;
-                  }
-
-                  Navigator
-                      .pushAndRemoveUntil(
-                    context,
-
-                    MaterialPageRoute(
-                      builder: (_) =>
-                      const WelcomeScreen(),
-                    ),
-
-                        (route) => false,
+                onChanged:
+                    (value) {
+                  themeController
+                      .setTheme(
+                    value
+                        ? ThemeMode.dark
+                        : ThemeMode.light,
                   );
                 },
+              ),
+
+              const SizedBox(
+                height: 18,
+              ),
+
+              // =================================================
+              // Logout
+              // =================================================
+
+              Text(
+                "Account Actions",
+                style: theme
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(
+                  fontWeight:
+                  FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(
+                height: 8,
+              ),
+
+              ListTile(
+                tileColor:
+                theme.cardColor,
+
+                shape:
+                RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(
+                    14,
+                  ),
+                ),
+
+                leading:
+                const Icon(
+                  Icons.logout_rounded,
+                ),
+
+                title:
+                const Text(
+                  "Logout",
+                ),
+
+                subtitle:
+                const Text(
+                  "Sign out of your account",
+                ),
+
+                onTap: () =>
+                    _logout(context),
               ),
 
               const SizedBox(
@@ -476,8 +499,8 @@ class _ProfileScreenState
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

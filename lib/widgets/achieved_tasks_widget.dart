@@ -1,17 +1,25 @@
-import 'package:flutter/material.dart';
-
 // =========================================================
 // Achieved Tasks Widget
 // =========================================================
-
-// هذا الـ Widget بعرض:
+//
+// هذا Widget صغير مسؤول فقط عن عرض:
 // - عدد التاسكات المكتملة
 // - العدد الكلي
 // - نسبة الإنجاز
+//
+// فصلناه عن HomeScreen عشان HomeScreen ما تكبر
+// ويصير كل Widget مسؤول عن جزء معين.
+//
+// =========================================================
+
+import 'package:flutter/material.dart';
+
 class AchievedTasksWidget
     extends StatelessWidget {
   final int completedTasks;
+
   final int totalTasks;
+
   final double progress;
 
   const AchievedTasksWidget({
@@ -39,11 +47,14 @@ class AchievedTasksWidget
         vertical: 10,
       ),
 
-      decoration: BoxDecoration(
+      decoration:
+      BoxDecoration(
         color: theme.cardColor,
 
         borderRadius:
-        BorderRadius.circular(15),
+        BorderRadius.circular(
+          15,
+        ),
       ),
 
       child: Row(
@@ -60,7 +71,6 @@ class AchievedTasksWidget
             children: [
               Text(
                 "Achieved Tasks",
-
                 style: theme
                     .textTheme
                     .bodyMedium
@@ -75,7 +85,6 @@ class AchievedTasksWidget
 
               Text(
                 "$completedTasks Out of $totalTasks Done",
-
                 style: theme
                     .textTheme
                     .bodySmall
@@ -85,10 +94,6 @@ class AchievedTasksWidget
               ),
             ],
           ),
-
-          // =================================================
-          // Progress
-          // =================================================
 
           SizedBox(
             width: 40,
@@ -100,8 +105,7 @@ class AchievedTasksWidget
 
               children: [
                 CircularProgressIndicator(
-                  value:
-                  progress,
+                  value: progress,
 
                   strokeWidth: 2,
 
@@ -123,7 +127,6 @@ class AchievedTasksWidget
 
                 Text(
                   "$percentage%",
-
                   style: theme
                       .textTheme
                       .bodyMedium

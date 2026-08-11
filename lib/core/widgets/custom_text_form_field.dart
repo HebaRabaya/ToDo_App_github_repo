@@ -3,76 +3,57 @@ import 'package:flutter/material.dart';
 // =========================================================
 // Custom Text Form Field
 // =========================================================
+//
+// هذا Widget بنستخدمه لما نحتاج TextFormField
+// بشكل مرتب وموحد.
+//
+// بدل ما نكرر نفس إعدادات الـ TextField
+// بكل شاشة، بنعمل Widget واحد ونستخدمه.
+//
+// =========================================================
 
-// Shared Widget
-// بنستخدمه بأكثر من شاشة بدل ما نكرر نفس TextFormField
-class CustomTextFormField extends StatelessWidget {
+class CustomTextFormField
+    extends StatelessWidget {
+  final TextEditingController controller;
 
-  final String label;
+  final String hintText;
 
-  final String? initialValue;
-
-  final String? hintText;
-
-  final int maxLines;
-
-  final TextEditingController? controller;
+  final String? labelText;
 
   final String? Function(String?)? validator;
 
+  final int maxLines;
+
   const CustomTextFormField({
     super.key,
-
-    required this.label,
-
-    this.initialValue,
-
-    this.hintText,
-
-    this.maxLines = 1,
-
-    this.controller,
-
+    required this.controller,
+    required this.hintText,
+    this.labelText,
     this.validator,
+    this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme =
+    Theme.of(context);
 
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+    return TextFormField(
+      controller: controller,
 
-      children: [
+      validator: validator,
 
-        Text(
-          label,
+      maxLines: maxLines,
 
-          style:
-          Theme.of(context)
-              .textTheme
-              .bodyMedium,
-        ),
+      style:
+      theme.textTheme.bodyMedium,
 
-        const SizedBox(height: 8),
+      decoration:
+      InputDecoration(
+        hintText: hintText,
 
-        TextFormField(
-          controller: controller,
-
-          initialValue:
-          controller == null
-              ? initialValue
-              : null,
-
-          maxLines: maxLines,
-
-          validator: validator,
-
-          decoration: InputDecoration(
-            hintText: hintText,
-          ),
-        ),
-      ],
+        labelText: labelText,
+      ),
     );
   }
 }

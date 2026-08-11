@@ -1,14 +1,26 @@
-import 'package:flutter/material.dart';
-
-import '../core/services/preferences_manager.dart';
-import '../core/widgets/custom_text_form_field.dart';
-
 // =========================================================
 // User Details Screen
 // =========================================================
+//
+// هاي الشاشة مسؤولة عن تعديل معلومات المستخدم.
+//
+// المستخدم بقدر من هون:
+// - يعدل اسمه
+// - يحفظ التعديل
+//
+// البيانات بتنحفظ عن طريق PreferencesManager
+// وبما إنه مربوط مع Provider، الاسم بتحدث بباقي التطبيق.
+// =========================================================
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../core/services/preferences_manager.dart';
 
 class UserDetailsScreen extends StatefulWidget {
-  const UserDetailsScreen({super.key});
+  const UserDetailsScreen({
+    super.key,
+  });
 
   @override
   State<UserDetailsScreen> createState() =>
@@ -18,19 +30,11 @@ class UserDetailsScreen extends StatefulWidget {
 class _UserDetailsScreenState
     extends State<UserDetailsScreen> {
 
-  final _formKey =
-  GlobalKey<FormState>();
+  // =========================================================
+  // Controller
+  // =========================================================
 
-  final TextEditingController
-  userNameController =
-  TextEditingController();
-
-  final TextEditingController
-  motivationController =
-  TextEditingController(
-    text:
-    "One task at a time. One step closer.",
-  );
+  late TextEditingController _nameController;
 
   // =========================================================
   // Init
@@ -40,8 +44,14 @@ class _UserDetailsScreenState
   void initState() {
     super.initState();
 
-    userNameController.text =
-        PreferencesManager.instance.username;
+    final manager =
+        PreferencesManager.instance;
+
+    // بنحط الاسم المحفوظ داخل TextField
+    _nameController =
+        TextEditingController(
+          text: manager.username,
+        );
   }
 
   // =========================================================
@@ -50,8 +60,7 @@ class _UserDetailsScreenState
 
   @override
   void dispose() {
-    userNameController.dispose();
-    motivationController.dispose();
+    _nameController.dispose();
 
     super.dispose();
   }
@@ -60,19 +69,42 @@ class _UserDetailsScreenState
   // Save Changes
   // =========================================================
 
-  Future<void> saveChanges() async {
+  Future<void> _saveChanges() async {
+    final name =
+    _nameController.text.trim();
 
-    if (!_formKey.currentState!.validate()) {
+    // إذا الاسم فاضي
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please enter your name",
+          ),
+        ),
+      );
+
       return;
     }
 
-    await PreferencesManager.instance
-        .saveUsername(
-      userNameController.text.trim(),
-    );
+    // حفظ الاسم
+    await context
+        .read<PreferencesManager>()
+        .saveUsername(name);
 
     if (!mounted) return;
 
+    // رسالة نجاح
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+      const SnackBar(
+        content: Text(
+          "User details updated successfully",
+        ),
+      ),
+    );
+
+    // نرجع للـ Profile
     Navigator.pop(context);
   }
 
@@ -82,8 +114,12 @@ class _UserDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme =
+    Theme.of(context);
 
     return Scaffold(
+      backgroundColor:
+      theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: const Text(
@@ -91,73 +127,201 @@ class _UserDetailsScreenState
         ),
       ),
 
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: ListView(
+        padding:
+        const EdgeInsets.all(20),
 
-          padding:
-          const EdgeInsets.all(13),
+        children: [
 
-          child: Form(
-            key: _formKey,
+          // ===================================================
+          // Profile Image
+          // ===================================================
 
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+          Center(
+            child: Container(
+              width: 90,
+              height: 90,
 
-              children: [
-
-                // User Name
-                CustomTextFormField(
-                  label: "User Name",
-
-                  controller:
-                  userNameController,
-
-                  validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty) {
-                      return
-                        "Please enter your name";
-                    }
-
-                    return null;
-                  },
+              decoration:
+              BoxDecoration(
+                borderRadius:
+                BorderRadius.circular(
+                  20,
                 ),
 
-                const SizedBox(height: 16),
-
-                // Motivation Quote
-                CustomTextFormField(
-                  label: "Motivation Quote",
-
-                  controller:
-                  motivationController,
-
-                  maxLines: 5,
-                ),
-
-                // نخلي الزر تحت
-                // مع مساحة حتى يظل شكله قريب من التصميم
-                const SizedBox(height: 210),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 42,
-
-                  child: ElevatedButton(
-                    onPressed: saveChanges,
-
-                    child: const Text(
-                      "Save Changes",
-                    ),
+                border: Border.all(
+                  color:
+                  const Color(
+                    0xFF9747FF,
                   ),
+                  width: 2,
+                ),
+              ),
+
+              child: ClipRRect(
+                borderRadius:
+                BorderRadius.circular(
+                  18,
                 ),
 
-                const SizedBox(height: 20),
-              ],
+                child: Image.asset(
+                  "assets/images/profile.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
-        ),
+
+          const SizedBox(
+            height: 25,
+          ),
+
+          // ===================================================
+          // Title
+          // ===================================================
+
+          Text(
+            "Personal Information",
+            style: theme
+                .textTheme
+                .titleMedium
+                ?.copyWith(
+              fontWeight:
+              FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(
+            height: 18,
+          ),
+
+          // ===================================================
+          // Full Name
+          // ===================================================
+
+          Text(
+            "Full Name",
+            style: theme
+                .textTheme
+                .bodySmall,
+          ),
+
+          const SizedBox(
+            height: 8,
+          ),
+
+          TextField(
+            controller:
+            _nameController,
+
+            textInputAction:
+            TextInputAction.done,
+
+            decoration:
+            InputDecoration(
+              hintText:
+              "Enter your full name",
+
+              prefixIcon:
+              const Icon(
+                Icons.person_outline,
+              ),
+
+              filled: true,
+
+              fillColor:
+              theme.cardColor,
+
+              border:
+              OutlineInputBorder(
+                borderRadius:
+                BorderRadius.circular(
+                  12,
+                ),
+
+                borderSide:
+                BorderSide.none,
+              ),
+
+              enabledBorder:
+              OutlineInputBorder(
+                borderRadius:
+                BorderRadius.circular(
+                  12,
+                ),
+
+                borderSide:
+                BorderSide.none,
+              ),
+
+              focusedBorder:
+              OutlineInputBorder(
+                borderRadius:
+                BorderRadius.circular(
+                  12,
+                ),
+
+                borderSide:
+                const BorderSide(
+                  color:
+                  Color(0xFF52C070),
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(
+            height: 25,
+          ),
+
+          // ===================================================
+          // Save Button
+          // ===================================================
+
+          SizedBox(
+            width:
+            double.infinity,
+
+            height: 50,
+
+            child:
+            ElevatedButton.icon(
+              onPressed:
+              _saveChanges,
+
+              icon: const Icon(
+                Icons.check,
+                color: Colors.white,
+              ),
+
+              label: const Text(
+                "Save Changes",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight:
+                  FontWeight.w600,
+                ),
+              ),
+
+              style:
+              ElevatedButton.styleFrom(
+                backgroundColor:
+                const Color(
+                  0xFF52C070,
+                ),
+
+                shape:
+                RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(
+                    12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

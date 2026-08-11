@@ -1,46 +1,43 @@
 // =========================================================
 // Task Model
 // =========================================================
-
-// هذا الـ Model بحدد شكل الـ Task داخل التطبيق.
+//
+// هذا الملف بيمثل شكل الـ Task داخل التطبيق.
+//
+// بدل ما نخزن معلومات التاسك بشكل عشوائي،
+// بنجمع كل معلوماتها داخل Object واحد.
 //
 // كل Task عندها:
-// - ID خاص فيها
-// - اسم
-// - وصف
+// - ID
+// - Name
+// - Description
 // - High Priority
 // - Completed
-// - تاريخ
-// - صورة اختيارية
-class TaskModel {
-  // =========================================================
-  // Properties
-  // =========================================================
+// - Due Date
+// - Image
+//
+// وكمان الملف مسؤول عن تحويل الـ Task:
+// Object → Map
+// Map → Object
+//
+// عشان نقدر نحفظها ونرجع نقرأها من التخزين.
+//
+// =========================================================
 
-  // ID خاص بالتاسك
+class TaskModel {
   final String taskId;
 
-  // اسم التاسك
   final String taskName;
 
-  // وصف التاسك
   final String taskDescription;
 
-  // هل التاسك High Priority؟
   final bool isHighPriority;
 
-  // هل التاسك مكتملة؟
   final bool isCompleted;
 
-  // تاريخ التسليم
   final String? dueDate;
 
-  // مسار الصورة الموجودة على الجهاز
   final String? imagePath;
-
-  // =========================================================
-  // Constructor
-  // =========================================================
 
   const TaskModel({
     required this.taskId,
@@ -52,62 +49,64 @@ class TaskModel {
     this.imagePath,
   });
 
-  // =========================================================
+  // =======================================================
   // To Map
-  // =========================================================
+  // =======================================================
 
-  // بنحول الـ Task إلى Map
-  // عشان نقدر نخزنها كـ JSON.
   Map<String, dynamic> toMap() {
     return {
-      "taskId": taskId,
-      "taskName": taskName,
-      "taskDescription": taskDescription,
-      "isHighPriority": isHighPriority,
-      "isCompleted": isCompleted,
-      "dueDate": dueDate,
-      "imagePath": imagePath,
+      'taskId': taskId,
+      'taskName': taskName,
+      'taskDescription': taskDescription,
+      'isHighPriority': isHighPriority,
+      'isCompleted': isCompleted,
+      'dueDate': dueDate,
+      'imagePath': imagePath,
     };
   }
 
-  // =========================================================
+  // =======================================================
   // To JSON
-  // =========================================================
+  // =======================================================
 
   Map<String, dynamic> toJson() {
     return toMap();
   }
 
-  // =========================================================
+  // =======================================================
   // From Map
-  // =========================================================
+  // =======================================================
 
-  factory TaskModel.fromMap(Map<String, dynamic> map) {
-    final taskName = map["taskName"] ?? "";
-    final taskDescription = map["taskDescription"] ?? "";
-
-    // إذا التاسك قديمة وما كان إلها ID
-    // بنعمل ID ثابت من الاسم والوصف.
-    final taskId =
-        map["taskId"] ??
-            "${taskName}_$taskDescription";
-
+  factory TaskModel.fromMap(
+      Map<String, dynamic> map,
+      ) {
     return TaskModel(
-      taskId: taskId.toString(),
-      taskName: taskName.toString(),
-      taskDescription: taskDescription.toString(),
+      taskId:
+      map['taskId']?.toString() ?? '',
+
+      taskName:
+      map['taskName']?.toString() ?? '',
+
+      taskDescription:
+      map['taskDescription']?.toString() ?? '',
+
       isHighPriority:
-      map["isHighPriority"] ?? false,
+      map['isHighPriority'] == true,
+
       isCompleted:
-      map["isCompleted"] ?? false,
-      dueDate: map["dueDate"]?.toString(),
-      imagePath: map["imagePath"]?.toString(),
+      map['isCompleted'] == true,
+
+      dueDate:
+      map['dueDate']?.toString(),
+
+      imagePath:
+      map['imagePath']?.toString(),
     );
   }
 
-  // =========================================================
+  // =======================================================
   // From JSON
-  // =========================================================
+  // =======================================================
 
   factory TaskModel.fromJson(
       Map<String, dynamic> json,
@@ -115,12 +114,10 @@ class TaskModel {
     return TaskModel.fromMap(json);
   }
 
-  // =========================================================
+  // =======================================================
   // Copy With
-  // =========================================================
+  // =======================================================
 
-  // بنستخدمها لما بدنا نغير قيمة معينة
-  // ونخلي باقي القيم زي ما هي.
   TaskModel copyWith({
     String? taskId,
     String? taskName,
@@ -133,18 +130,29 @@ class TaskModel {
     bool clearImagePath = false,
   }) {
     return TaskModel(
-      taskId: taskId ?? this.taskId,
-      taskName: taskName ?? this.taskName,
+      taskId:
+      taskId ?? this.taskId,
+
+      taskName:
+      taskName ?? this.taskName,
+
       taskDescription:
-      taskDescription ?? this.taskDescription,
+      taskDescription ??
+          this.taskDescription,
+
       isHighPriority:
-      isHighPriority ?? this.isHighPriority,
+      isHighPriority ??
+          this.isHighPriority,
+
       isCompleted:
-      isCompleted ?? this.isCompleted,
+      isCompleted ??
+          this.isCompleted,
+
       dueDate:
       clearDueDate
           ? null
           : dueDate ?? this.dueDate,
+
       imagePath:
       clearImagePath
           ? null

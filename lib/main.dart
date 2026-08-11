@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'core/services/preferences_manager.dart';
 import 'core/theme/dark_theme.dart';
 import 'core/theme/light_theme.dart';
 import 'core/theme/theme_controller.dart';
-
 import 'screens/main_screen.dart';
-import 'screens/welcome_screen.dart';
 
-// =========================================================
-// Main
-// =========================================================
-
-// أول ملف ببدأ منه التطبيق.
 Future<void> main() async {
-  // بنتأكد إن Flutter جاهز.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // تجهيز PreferencesManager قبل تشغيل التطبيق.
   await PreferencesManager.instance.init();
 
-  // تشغيل التطبيق.
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: PreferencesManager.instance,
+        ),
+
+        ChangeNotifierProvider.value(
+          value: ThemeController.instance,
+        ),
+      ],
+
+      child: const MyApp(),
+    ),
+  );
 }
 
 // =========================================================
@@ -29,66 +34,28 @@ Future<void> main() async {
 // =========================================================
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([
-        PreferencesManager.instance,
-        ThemeController.instance,
-      ]),
-      builder: (context, child) {
-        final themeMode =
-            ThemeController.instance.themeMode;
+    final themeController =
+    context.watch<ThemeController>();
 
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
 
-          // =================================================
-          // Themes
-          // =================================================
+      title: "Tasky",
 
-          theme: LightTheme.theme,
+      theme: LightTheme.theme,
 
-          darkTheme: DarkTheme.theme,
+      darkTheme: DarkTheme.theme,
 
-          themeMode: themeMode,
+      themeMode:
+      themeController.themeMode,
 
-          // =================================================
-          // First Screen
-          // =================================================
-
-          home: const StartScreen(),
-        );
-      },
+      home: const MainScreen(),
     );
-  }
-}
-
-// =========================================================
-// Start Screen
-// =========================================================
-
-// هاي الشاشة بتقرر:
-//
-// إذا المستخدم موجود
-// → MainScreen
-//
-// إذا مش موجود
-// → WelcomeScreen
-class StartScreen extends StatelessWidget {
-  const StartScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final userName =
-        PreferencesManager.instance.username;
-
-    if (userName.isNotEmpty) {
-      return const MainScreen();
-    }
-
-    return const WelcomeScreen();
   }
 }

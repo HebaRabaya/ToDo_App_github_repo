@@ -1,31 +1,34 @@
+// =========================================================
+// High Priority Tasks Widget
+// =========================================================
+//
+// هذا Widget مسؤول عن عرض قسم High Priority
+// داخل Home Screen.
+//
+// بياخذ التاسكات من الـ Home
+// وبعرض أول 3 Tasks فقط.
+//
+// =========================================================
+
 import 'package:flutter/material.dart';
 
 import '../models/task_model.dart';
 import 'task_item_widget.dart';
 
-// =========================================================
-// High Priority Tasks Widget
-// =========================================================
-
-// هذا الـ Widget بعرض قسم High Priority في الـ Home.
 class HighPriorityTasksWidget
     extends StatelessWidget {
   final List<TaskModel> tasks;
 
   final VoidCallback? onViewAll;
 
-  final VoidCallback? onTaskUpdated;
-
   const HighPriorityTasksWidget({
     super.key,
     required this.tasks,
     this.onViewAll,
-    this.onTaskUpdated,
   });
 
   @override
   Widget build(BuildContext context) {
-    // إذا ما في High Priority Tasks
     if (tasks.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -40,19 +43,18 @@ class HighPriorityTasksWidget
       padding:
       const EdgeInsets.all(12),
 
-      decoration: BoxDecoration(
+      decoration:
+      BoxDecoration(
         color: theme.cardColor,
 
         borderRadius:
-        BorderRadius.circular(15),
+        BorderRadius.circular(
+          15,
+        ),
       ),
 
       child: Column(
         children: [
-          // =================================================
-          // Header
-          // =================================================
-
           Row(
             mainAxisAlignment:
             MainAxisAlignment
@@ -61,7 +63,6 @@ class HighPriorityTasksWidget
             children: [
               Text(
                 "High Priority",
-
                 style: theme
                     .textTheme
                     .bodyMedium
@@ -76,12 +77,15 @@ class HighPriorityTasksWidget
                 onPressed:
                 onViewAll,
 
-                child: const Text(
+                child:
+                const Text(
                   "View All",
-
-                  style: TextStyle(
+                  style:
+                  TextStyle(
                     color:
-                    Color(0xFF52C070),
+                    Color(
+                      0xFF52C070,
+                    ),
                     fontSize: 11,
                   ),
                 ),
@@ -93,18 +97,12 @@ class HighPriorityTasksWidget
             height: 4,
           ),
 
-          // =================================================
-          // Tasks
-          // =================================================
-
           ...tasks
               .take(3)
               .map(
                 (task) =>
                 TaskItemWidget(
                   task: task,
-                  onTaskUpdated:
-                  onTaskUpdated,
                 ),
           ),
         ],

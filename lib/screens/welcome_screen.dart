@@ -1,12 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import '../core/services/preferences_manager.dart';
-import 'main_screen.dart';
-
 // =========================================================
 // Welcome Screen
 // =========================================================
+//
+// هاي أول شاشة بتظهر للمستخدم الجديد.
+//
+// المستخدم بكتب اسمه، ولما يضغط Let's Get Started
+// بنحفظ الاسم عن طريق PreferencesManager.
+//
+// استخدمنا Provider + context.read()
+// عشان نوصل للـ Controller بدون ما نعمل Consumer.
+//
+// =========================================================
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../core/services/preferences_manager.dart';
+import 'main_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -16,22 +27,13 @@ class WelcomeScreen extends StatefulWidget {
       _WelcomeScreenState();
 }
 
-// =========================================================
-// Logic
-// =========================================================
-
 class _WelcomeScreenState
     extends State<WelcomeScreen> {
-
   final _formKey =
   GlobalKey<FormState>();
 
   final TextEditingController controller =
   TextEditingController();
-
-  // =========================================================
-  // Dispose
-  // =========================================================
 
   @override
   void dispose() {
@@ -39,23 +41,22 @@ class _WelcomeScreenState
     super.dispose();
   }
 
-  // =========================================================
+  // =======================================================
   // Save Username
-  // =========================================================
+  // =======================================================
 
   Future<void> saveUserName() async {
-
     final name =
     controller.text.trim();
 
-    await PreferencesManager.instance
+    await context
+        .read<PreferencesManager>()
         .saveUsername(name);
 
     if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
-
       MaterialPageRoute(
         builder: (_) =>
         const MainScreen(),
@@ -63,13 +64,8 @@ class _WelcomeScreenState
     );
   }
 
-  // =========================================================
-  // Build
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
-
     final theme =
     Theme.of(context);
 
@@ -93,13 +89,11 @@ class _WelcomeScreenState
       ),
 
       child: Scaffold(
-
         backgroundColor:
         theme.scaffoldBackgroundColor,
 
         body: SafeArea(
           child: SingleChildScrollView(
-
             child: Padding(
               padding:
               const EdgeInsets.symmetric(
@@ -114,48 +108,39 @@ class _WelcomeScreenState
                   CrossAxisAlignment.center,
 
                   children: [
-
-                    const SizedBox(height: 18),
-
-                    // =================================================
-                    // Logo
-                    // =================================================
+                    const SizedBox(
+                      height: 18,
+                    ),
 
                     Row(
                       mainAxisAlignment:
                       MainAxisAlignment.center,
-
                       children: [
-
                         Image.asset(
                           "assets/images/logo.png",
-
                           width: 48,
                           height: 48,
                         ),
 
-                        const SizedBox(width: 10),
+                        const SizedBox(
+                          width: 10,
+                        ),
 
                         Text(
                           "Tasky",
-
-                          style:
-                          theme
+                          style: theme
                               .textTheme
                               .headlineSmall,
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 108),
-
-                    // =================================================
-                    // Welcome Text
-                    // =================================================
+                    const SizedBox(
+                      height: 108,
+                    ),
 
                     Text(
                       "Welcome To Tasky 👋🏻",
-
                       style: theme
                           .textTheme
                           .titleLarge
@@ -165,35 +150,30 @@ class _WelcomeScreenState
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                      height: 8,
+                    ),
 
                     Text(
                       "Your productivity journey starts here.",
-
-                      style:
-                      theme
+                      style: theme
                           .textTheme
                           .bodySmall,
                     ),
 
-                    const SizedBox(height: 20),
-
-                    // =================================================
-                    // Image
-                    // =================================================
+                    const SizedBox(
+                      height: 20,
+                    ),
 
                     Image.asset(
                       "assets/images/task.png",
-
                       width: 180,
                       height: 180,
                     ),
 
-                    const SizedBox(height: 28),
-
-                    // =================================================
-                    // Full Name
-                    // =================================================
+                    const SizedBox(
+                      height: 28,
+                    ),
 
                     Align(
                       alignment:
@@ -201,30 +181,27 @@ class _WelcomeScreenState
 
                       child: Text(
                         "Full Name",
-
-                        style:
-                        theme
+                        style: theme
                             .textTheme
                             .bodyMedium,
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
                     TextFormField(
                       controller:
                       controller,
 
-                      style:
-                      theme
+                      style: theme
                           .textTheme
                           .bodyMedium,
 
                       validator: (value) {
-
                         if (value == null ||
                             value.trim().isEmpty) {
-
                           return
                             "Please enter your name";
                         }
@@ -239,37 +216,35 @@ class _WelcomeScreenState
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
-                    // =================================================
-                    // Start Button
-                    // =================================================
+                    const SizedBox(
+                      height: 24,
+                    ),
 
                     SizedBox(
                       width:
                       double.infinity,
-
                       height: 55,
 
                       child:
                       ElevatedButton(
                         onPressed: () {
-
                           if (_formKey
                               .currentState!
                               .validate()) {
-
                             saveUserName();
                           }
                         },
 
-                        child: const Text(
+                        child:
+                        const Text(
                           "Let's Get Started",
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(
+                      height: 20,
+                    ),
                   ],
                 ),
               ),

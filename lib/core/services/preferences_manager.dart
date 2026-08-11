@@ -8,13 +8,16 @@ import '../../models/task_model.dart';
 // =========================================================
 // Preferences Manager
 // =========================================================
-
+//
 // هذا الملف مسؤول عن التعامل مع SharedPreferences.
 //
 // بدل ما كل شاشة تعمل:
 // SharedPreferences.getInstance()
 //
 // بنخلي التعامل مع البيانات بمكان واحد.
+//
+// =========================================================
+
 class PreferencesManager extends ChangeNotifier {
   PreferencesManager._();
 
@@ -29,8 +32,7 @@ class PreferencesManager extends ChangeNotifier {
   // =========================================================
 
   Future<void> init() async {
-    _prefs ??=
-    await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
   }
 
   // =========================================================
@@ -41,9 +43,7 @@ class PreferencesManager extends ChangeNotifier {
     return _prefs?.getString("username") ?? "";
   }
 
-  Future<void> saveUsername(
-      String username,
-      ) async {
+  Future<void> saveUsername(String username) async {
     await _prefs?.setString(
       "username",
       username,
@@ -60,9 +60,7 @@ class PreferencesManager extends ChangeNotifier {
     return _prefs?.getBool("isDarkMode") ?? true;
   }
 
-  Future<void> saveDarkMode(
-      bool value,
-      ) async {
+  Future<void> saveDarkMode(bool value) async {
     await _prefs?.setBool(
       "isDarkMode",
       value,
@@ -73,6 +71,13 @@ class PreferencesManager extends ChangeNotifier {
 
   // =========================================================
   // Logout
+  // =========================================================
+  //
+  // بنحذف اسم المستخدم.
+  //
+  // التاسكات والثيم ما بنحذفهم،
+  // عشان Logout يكون تسجيل خروج فقط.
+  //
   // =========================================================
 
   Future<void> logout() async {
@@ -101,7 +106,7 @@ class PreferencesManager extends ChangeNotifier {
           ),
         );
       } catch (_) {
-        // إذا كانت البيانات مش صحيحة
+        // إذا البيانات مش صحيحة
         // بنتجاهلها بدل ما التطبيق يوقع.
       }
     }
@@ -156,8 +161,7 @@ class PreferencesManager extends ChangeNotifier {
     final currentTasks = tasks;
 
     final index = currentTasks.indexWhere(
-          (task) =>
-      task.taskId == updatedTask.taskId,
+          (task) => task.taskId == updatedTask.taskId,
     );
 
     if (index == -1) {
